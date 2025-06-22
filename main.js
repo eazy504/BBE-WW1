@@ -127,20 +127,29 @@ menuButtons.forEach((btn) => {
   });
 });
 
-window.addEventListener('load', () => {
-  const mapWidth = container.offsetWidth;
-  const mapHeight = container.offsetHeight;
-  const boxWidth = wrapper.clientWidth;
-  const boxHeight = wrapper.clientHeight;
+function fitMapToContainer() {
+  const container = document.getElementById("map-scroll-wrapper");
+  const map = document.getElementById("map-container");
 
-  const scaleX = boxWidth / mapWidth;
-  const scaleY = boxHeight / mapHeight;
-  zoomLevel = Math.min(scaleX, scaleY);
-  zoomLevel = Math.max(minZoom, Math.min(maxZoom, zoomLevel));
+  const containerWidth = container.clientWidth;
+  const containerHeight = container.clientHeight;
 
-  container.style.transform = `scale(${zoomLevel})`;
-  zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
+  const mapWidth = map.offsetWidth;
+  const mapHeight = map.offsetHeight;
 
-  wrapper.scrollLeft = (mapWidth * zoomLevel - boxWidth) / 2;
-  wrapper.scrollTop = (mapHeight * zoomLevel - boxHeight) / 2;
-});
+  const scaleX = containerWidth / mapWidth;
+  const scaleY = containerHeight / mapHeight;
+
+  const newScale = Math.min(scaleX, scaleY);
+  map.style.transform = `scale(${newScale})`;
+
+  // Scroll to center
+  container.scrollLeft = (mapWidth * newScale - containerWidth) / 2;
+  container.scrollTop = (mapHeight * newScale - containerHeight) / 2;
+
+  // Update Zoom Display
+  document.getElementById("zoom-display").textContent = `Zoom: ${(newScale * 100).toFixed(0)}%`;
+}
+
+window.addEventListener("load", fitMapToContainer);
+window.addEventListener("resize", fitMapToContainer);
