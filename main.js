@@ -8,6 +8,9 @@ const gridCols = 802;
 const gridRows = 376;
 const defaultColor = '#ffffff';
 
+canvas.width = window.innerWidth - 60;  // 30px margin left and right
+canvas.height = window.innerHeight - 70; // 40px top menu + 30px bottom margin
+
 let scale = 1;
 let offsetX = 0;
 let offsetY = 0;
@@ -18,15 +21,12 @@ let isErasing = false;
 let currentTool = 'brush';
 let selectedColor = '#000000';
 let savedTiles = {};
-let showTileBorders = true; // <== Toggle flag for borders
+let showTileBorders = true;
 
+// Clamp helper function
 function clamp(val, min, max) {
-24:   return Math.max(min, Math.min(max, val));
-25: }
-
-canvas.width = window.innerWidth - 60; // 30px each side
-canvas.height = window.innerHeight - 70; // 40px top + 30px bottom
-
+  return Math.max(min, Math.min(max, val));
+}
 
 function drawGrid() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -146,10 +146,10 @@ canvas.addEventListener('wheel', (e) => {
   offsetY -= (mouseY - offsetY) * (1 - delta);
   scale = newScale;
 
+  const minOffsetX = Math.min(0, canvas.width - (gridCols * tileSize * scale));
+  const minOffsetY = Math.min(0, canvas.height - (gridRows * tileSize * scale));
   const maxOffsetX = 0;
   const maxOffsetY = 0;
-  const minOffsetX = canvas.width - (gridCols * tileSize * scale);
-  const minOffsetY = canvas.height - (gridRows * tileSize * scale);
 
   offsetX = clamp(offsetX, minOffsetX, maxOffsetX);
   offsetY = clamp(offsetY, minOffsetY, maxOffsetY);
@@ -172,21 +172,23 @@ canvas.addEventListener('mousedown', (e) => {
 });
 
 canvas.addEventListener('mousemove', (e) => {
+  const [tx, ty] = getTileFromMouse(e);
+
   if (isPanning) {
-  offsetX += e.clientX - startPan.x;
-  offsetY += e.clientY - startPan.y;
-  startPan = { x: e.clientX, y: e.clientY };
+    offsetX += e.clientX - startPan.x;
+    offsetY += e.clientY - startPan.y;
+    startPan = { x: e.clientX, y: e.clientY };
 
-  const maxOffsetX = 0;
-  const maxOffsetY = 0;
-  const minOffsetX = canvas.width - (gridCols * tileSize * scale);
-  const minOffsetY = canvas.height - (gridRows * tileSize * scale);
+    const minOffsetX = Math.min(0, canvas.width - (gridCols * tileSize * scale));
+    const minOffsetY = Math.min(0, canvas.height - (gridRows * tileSize * scale));
+    const maxOffsetX = 0;
+    const maxOffsetY = 0;
 
-  offsetX = clamp(offsetX, minOffsetX, maxOffsetX);
-  offsetY = clamp(offsetY, minOffsetY, maxOffsetY);
+    offsetX = clamp(offsetX, minOffsetX, maxOffsetX);
+    offsetY = clamp(offsetY, minOffsetY, maxOffsetY);
 
-  drawGrid();
-} else if (isPainting || isErasing) {
+    drawGrid();
+  } else if (isPainting || isErasing) {
     handlePaintOrErase(e);
   }
 });
