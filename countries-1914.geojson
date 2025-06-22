@@ -1,0 +1,65 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "German Empire",
+        "owner": "Player 1",
+        "troops": 500000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10, 50], [15, 50], [15, 55], [10, 55], [10, 50]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Russian Empire",
+        "owner": "Player 2",
+        "troops": 700000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[30, 50], [40, 50], [40, 60], [30, 60], [30, 50]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Austria-Hungary",
+        "owner": "Player 3",
+        "troops": 400000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[15, 45], [20, 45], [20, 50], [15, 50], [15, 45]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ottoman Empire",
+        "owner": "Player 4",
+        "troops": 350000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[35, 35], [40, 35], [40, 40], [35, 40], [35, 35]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "France",
+        "owner": "Player 5",
+        "troops": 450000
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[0, 45], [5, 45], [5, 50], [0, 50], [0, 45]]]
+      }
+    }
+  ]
+}
