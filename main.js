@@ -11,19 +11,21 @@ const gridRows = 376;
 const defaultColor = '#f0f0f0';
 let selectedColor = paintColorInput.value;
 let zoomLevel = 1;
-let isDragging = false;
-let isPainting = false;
-let isErasing = false;
-let dragStartX, dragStartY;
 let viewOffsetX = 0;
 let viewOffsetY = 0;
 let hoveredTile = null;
+let lastHoveredTile = null;
+let isDragging = false;
+let isPainting = false;
+let isErasing = false;
+let dragStartX = 0;
+let dragStartY = 0;
 let animationFrame = null;
-
-const menuHeight = document.getElementById('menu-bar').offsetHeight;
-hexDisplay.textContent = selectedColor;
+let redrawPending = false;
 
 const savedTiles = JSON.parse(localStorage.getItem('tileColorsCanvas') || '{}');
+
+hexDisplay.textContent = selectedColor;
 
 function saveTileColor(x, y, color) {
   const key = `${x},${y}`;
@@ -36,6 +38,7 @@ function saveTileColor(x, y, color) {
 }
 
 function drawGrid() {
+  redrawPending = false;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
@@ -78,6 +81,13 @@ function drawGrid() {
   zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
 }
 
+function requestRedraw() {
+  if (!redrawPending) {
+    redrawPending = true;
+    requestAnimationFrame(drawGrid);
+  }
+}
+
 function clampOffsets() {
   const mapWidth = gridCols * tileSize * zoomLevel;
   const mapHeight = gridRows * tileSize * zoomLevel;
@@ -97,9 +107,7 @@ function getTileFromMouse(e) {
   const rect = canvas.getBoundingClientRect();
   const canvasX = (e.clientX - rect.left - viewOffsetX) / zoomLevel;
   const canvasY = (e.clientY - rect.top - viewOffsetY) / zoomLevel;
-  const tx = Math.floor(canvasX / tileSize);
-  const ty = Math.floor(canvasY / tileSize);
-  return [tx, ty];
+  return [Math.floor(canvasX / tileSize), Math.floor(canvasY / tileSize)];
 }
 
 function handlePaintOrErase(e) {
@@ -113,7 +121,7 @@ function handlePaintOrErase(e) {
       delete savedTiles[key];
       saveTileColor(tx, ty, defaultColor);
     }
-    drawGrid();
+    requestRedraw();
   }
 }
 
@@ -126,12 +134,6 @@ canvas.addEventListener('mousedown', (e) => {
     dragStartX = e.clientX;
     dragStartY = e.clientY;
     canvas.style.cursor = 'grabbing';
-
-    function panLoop() {
-      if (!isDragging) return;
-      animationFrame = requestAnimationFrame(panLoop);
-    }
-    panLoop();
   } else if (e.button === 0) {
     isPainting = true;
     handlePaintOrErase(e);
@@ -145,7 +147,6 @@ canvas.addEventListener('mouseup', () => {
   isDragging = false;
   isPainting = false;
   isErasing = false;
-  if (animationFrame) cancelAnimationFrame(animationFrame);
   canvas.style.cursor = 'default';
 });
 
@@ -158,20 +159,19 @@ canvas.addEventListener('mousemove', (e) => {
     viewOffsetX += dx;
     viewOffsetY += dy;
     clampOffsets();
+    requestRedraw();
   }
 
   const [tx, ty] = getTileFromMouse(e);
-  if (tx >= 0 && tx < gridCols && ty >= 0 && ty < gridRows) {
+  if (!lastHoveredTile || tx !== lastHoveredTile[0] || ty !== lastHoveredTile[1]) {
     hoveredTile = [tx, ty];
-  } else {
-    hoveredTile = null;
+    lastHoveredTile = [tx, ty];
+    requestRedraw();
   }
 
   if (isPainting || isErasing) {
     handlePaintOrErase(e);
   }
-
-  drawGrid();
 });
 
 canvas.addEventListener('contextmenu', (e) => {
@@ -186,9 +186,9 @@ canvas.addEventListener('wheel', (e) => {
   } else {
     zoomLevel /= zoomFactor;
   }
-  zoomLevel = Math.max(0.05, Math.min(2, zoomLevel));
+  zoomLevel = Math.max(0.02, Math.min(2, zoomLevel)); // ⬅️ allow further zoom out
   clampOffsets();
-  drawGrid();
+  requestRedraw();
 }, { passive: false });
 
 paintColorInput.addEventListener('input', () => {
@@ -199,7 +199,7 @@ paintColorInput.addEventListener('input', () => {
 window.addEventListener('resize', () => {
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
-  drawGrid();
+  requestRedraw();
 });
 
-window.addEventListener('load', drawGrid);
+window.addEventListener('load', requestRedraw);
