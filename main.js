@@ -75,7 +75,7 @@ for (let y = 0; y < height; y++) {
   }
 }
 
-// Stop painting
+// Stop painting or dragging
 document.addEventListener('mouseup', () => {
   isPainting = false;
   isDraggingMap = false;
@@ -122,7 +122,7 @@ wrapper.addEventListener('wheel', (e) => {
   zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
 }, { passive: false });
 
-// Tab toggle (Admin / None)
+// Admin tab toggle
 menuButtons.forEach((btn) => {
   btn.addEventListener('click', () => {
     const tab = btn.dataset.tab;
@@ -130,8 +130,21 @@ menuButtons.forEach((btn) => {
   });
 });
 
-// Scroll to center on load
+// Auto-fit map to view on load
 window.addEventListener('load', () => {
-  wrapper.scrollLeft = container.offsetWidth / 2 - wrapper.clientWidth / 2;
-  wrapper.scrollTop = container.offsetHeight / 2 - wrapper.clientHeight / 2;
+  const mapWidth = container.offsetWidth;
+  const mapHeight = container.offsetHeight;
+  const boxWidth = wrapper.clientWidth;
+  const boxHeight = wrapper.clientHeight;
+
+  const scaleX = boxWidth / mapWidth;
+  const scaleY = boxHeight / mapHeight;
+  zoomLevel = Math.min(scaleX, scaleY);
+  zoomLevel = Math.max(minZoom, Math.min(maxZoom, zoomLevel));
+
+  container.style.transform = `scale(${zoomLevel})`;
+  zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
+
+  wrapper.scrollLeft = (mapWidth * zoomLevel - boxWidth) / 2;
+  wrapper.scrollTop = (mapHeight * zoomLevel - boxHeight) / 2;
 });
