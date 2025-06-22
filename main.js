@@ -1,164 +1,86 @@
-const canvas = document.getElementById('map-canvas');
+// Canvas and drawing context
+const canvas = document.getElementById('mapCanvas');
 const ctx = canvas.getContext('2d');
-const paintColorInput = document.getElementById('paint-color');
-const hexDisplay = document.getElementById('hex-display');
+
+// UI elements
+const colorPicker = document.getElementById('color-picker');
 const zoomDisplay = document.getElementById('zoom-display');
 
-const tileSize = 90;
-const gridCols = 802;
-const gridRows = 376;
+// Grid configuration
+const tileSize = 30;                // Size of each tile in pixels
+const gridCols = 802;              // Number of columns
+const gridRows = 376;              // Number of rows
+const defaultColor = '#ffffff';    // Default tile color
 
-const defaultColor = '#f0f0f0';
-let selectedColor = paintColorInput.value;
-let zoomLevel = 1;
-let viewOffsetX = 0;
-let viewOffsetY = 0;
-let hoveredTile = null;
-let lastHoveredTile = null;
-let isDragging = false;
-let isPainting = false;
-let isErasing = false;
-let dragStartX = 0;
-let dragStartY = 0;
-let redrawPending = false;
-let currentTool = 'brush';
+// State variables
+let scale = 1;             // Zoom level
+let offsetX = 0;           // Horizontal pan offset
+let offsetY = 0;           // Vertical pan offset
+let isPanning = false;     // Flag for panning mode
+let startPan = {};         // Mouse start position during pan
+let isPainting = false;    // Flag for painting
+let isErasing = false;     // Flag for erasing
+let currentTool = 'brush'; // Current selected tool
+let selectedColor = '#000000';  // Current selected paint color
+let savedTiles = {};            // Object storing tile colors by key
 
-const savedTiles = JSON.parse(localStorage.getItem('tileColorsCanvas') || '{}');
-hexDisplay.textContent = selectedColor;
+// Set initial canvas size
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight - 40;
 
-document.querySelectorAll('input[name="tool"]').forEach(radio => {
-  radio.addEventListener('change', (e) => {
-    currentTool = e.target.value;
-  });
-});
-
-function saveTileColor(x, y, color) {
-  const key = `${x},${y}`;
-  if (color === defaultColor || !color) {
-    delete savedTiles[key];
-  } else {
-    savedTiles[key] = color;
-  }
-  localStorage.setItem('tileColorsCanvas', JSON.stringify(savedTiles));
-}
-
-function requestRedraw() {
-  if (!redrawPending) {
-    redrawPending = true;
-    requestAnimationFrame(drawGrid);
-  }
-}
-
-function clampOffsets() {
-  const mapWidth = gridCols * tileSize * zoomLevel;
-  const mapHeight = gridRows * tileSize * zoomLevel;
-  const canvasWidth = canvas.width;
-  const canvasHeight = canvas.height;
-
-  const minX = -mapWidth + canvasWidth;
-  const maxX = 0;
-  const minY = -mapHeight + canvasHeight;
-  const maxY = 0;
-
-  viewOffsetX = Math.min(Math.max(viewOffsetX, minX), maxX);
-  viewOffsetY = Math.min(Math.max(viewOffsetY, minY), maxY);
-}
-
-function getTileFromMouse(e) {
-  const rect = canvas.getBoundingClientRect();
-  const canvasX = (e.clientX - rect.left - viewOffsetX) / zoomLevel;
-  const canvasY = (e.clientY - rect.top - viewOffsetY) / zoomLevel;
-  return [Math.floor(canvasX / tileSize), Math.floor(canvasY / tileSize)];
-}
-
+// Function to draw the entire tile grid
 function drawGrid() {
-  redrawPending = false;
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
-  ctx.setTransform(zoomLevel, 0, 0, zoomLevel, viewOffsetX, viewOffsetY);
 
-  const visibleCols = Math.ceil(canvas.width / (tileSize * zoomLevel)) + 2;
-  const visibleRows = Math.ceil(canvas.height / (tileSize * zoomLevel)) + 2;
-  const startX = Math.floor(-viewOffsetX / (tileSize * zoomLevel)) - 1;
-  const startY = Math.floor(-viewOffsetY / (tileSize * zoomLevel)) - 1;
+  ctx.translate(offsetX, offsetY);
+  ctx.scale(scale, scale);
 
-  for (let y = startY; y < startY + visibleRows; y++) {
-    if (y < 0 || y >= gridRows) continue;
-    for (let x = startX; x < startX + visibleCols; x++) {
-      if (x < 0 || x >= gridCols) continue;
+  for (let y = 0; y < gridRows; y++) {
+    for (let x = 0; x < gridCols; x++) {
       const key = `${x},${y}`;
-      const drawX = x * tileSize;
-      const drawY = y * tileSize;
-      ctx.fillStyle = savedTiles[key] || defaultColor;
-      ctx.fillRect(drawX, drawY, tileSize, tileSize);
-      ctx.strokeStyle = '#999';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(drawX, drawY, tileSize, tileSize);
-    }
-  }
+      const tileColor = savedTiles[key] || defaultColor;
 
-  if (hoveredTile) {
-    const [x, y] = hoveredTile;
-    if (x >= 0 && x < gridCols && y >= 0 && y < gridRows) {
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
+      // Draw tile
+      ctx.fillStyle = tileColor;
+      ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+
+      // Draw tile border
+      ctx.strokeStyle = '#ccc';
       ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
     }
   }
 
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 8;
-  ctx.strokeRect(0, 0, gridCols * tileSize, gridRows * tileSize);
-
   ctx.restore();
-  zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
+
+  // Display zoom percentage
+  zoomDisplay.textContent = `Zoom: ${Math.round(scale * 100)}%`;
 }
 
-function boundedFloodFill(x, y, targetColor, replacementColor, erase = false, maxTiles = 100) {
-  if (!erase && targetColor === replacementColor) return;
+// Helper to get tile coordinates from mouse event
+function getTileFromMouse(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left - offsetX) / scale;
+  const y = (e.clientY - rect.top - offsetY) / scale;
+  return [Math.floor(x / tileSize), Math.floor(y / tileSize)];
+}
 
-  const stack = [[x, y]];
-  const filled = new Set();
-  const boundsCheck = (cx, cy) => cx >= 0 && cx < gridCols && cy >= 0 && cy < gridRows;
-
-  while (stack.length > 0 && filled.size < maxTiles) {
-    const [cx, cy] = stack.pop();
-    const key = `${cx},${cy}`;
-    if (filled.has(key)) continue;
-
-    const currentColor = savedTiles[key] || defaultColor;
-    if (currentColor !== targetColor) continue;
-
-    if (erase) {
-      delete savedTiles[key];
-      saveTileColor(cx, cy, defaultColor);
-    } else {
-      savedTiles[key] = replacementColor;
-      saveTileColor(cx, cy, replacementColor);
-    }
-
-    filled.add(key);
-
-    const neighbors = [
-      [cx + 1, cy],
-      [cx - 1, cy],
-      [cx, cy + 1],
-      [cx, cy - 1],
-    ];
-
-    for (const [nx, ny] of neighbors) {
-      const neighborKey = `${nx},${ny}`;
-      if (!filled.has(neighborKey) && boundsCheck(nx, ny)) {
-        const neighborColor = savedTiles[neighborKey] || defaultColor;
-        if (neighborColor === targetColor) {
-          stack.push([nx, ny]);
-        }
-      }
-    }
+// Save color of tile into the map
+function saveTileColor(x, y, color) {
+  const key = `${x},${y}`;
+  if (color === defaultColor) {
+    delete savedTiles[key];
+  } else {
+    savedTiles[key] = color;
   }
 }
 
+// Tool switch function
+function setTool(tool) {
+  currentTool = tool;
+}
+
+// Painting or erasing function
 function handlePaintOrErase(e) {
   const [tx, ty] = getTileFromMouse(e);
   if (tx >= 0 && tx < gridCols && ty >= 0 && ty < gridRows) {
@@ -167,97 +89,118 @@ function handlePaintOrErase(e) {
 
     if (isPainting) {
       if (currentTool === 'brush') {
-        savedTiles[key] = selectedColor;
         saveTileColor(tx, ty, selectedColor);
       } else if (currentTool === 'bucket') {
-        boundedFloodFill(tx, ty, originalColor, selectedColor, false, 100);
+        floodFillWithinRadius(tx, ty, originalColor, selectedColor, false, 10);
       } else if (currentTool === 'bucket-eraser') {
-        boundedFloodFill(tx, ty, originalColor, null, true, 100);
+        floodFillWithinRadius(tx, ty, originalColor, null, true, 10);
       }
     } else if (isErasing) {
-      delete savedTiles[key];
       saveTileColor(tx, ty, defaultColor);
     }
 
-    requestRedraw();
+    drawGrid();
   }
 }
 
-canvas.width = canvas.clientWidth;
-canvas.height = canvas.clientHeight;
+// Flood fill function with radius and tile cap
+function floodFillWithinRadius(x, y, targetColor, replacementColor, erase = false, radius = 10) {
+  if (!erase && targetColor === replacementColor) return;
 
+  const stack = [[x, y]];
+  const filled = new Set();
+
+  const maxTiles = 200; // Tile limit
+  const inBounds = (cx, cy) =>
+    cx >= 0 && cx < gridCols && cy >= 0 && cy < gridRows &&
+    Math.abs(cx - x) <= radius && Math.abs(cy - y) <= radius;
+
+  while (stack.length > 0 && filled.size < maxTiles) {
+    const [cx, cy] = stack.pop();
+    const key = `${cx},${cy}`;
+
+    if (filled.has(key) || !inBounds(cx, cy)) continue;
+
+    const currentColor = savedTiles[key] || defaultColor;
+    if (currentColor !== targetColor) continue;
+
+    // Apply color or erase
+    if (erase) {
+      saveTileColor(cx, cy, defaultColor);
+    } else {
+      saveTileColor(cx, cy, replacementColor);
+    }
+
+    filled.add(key);
+
+    // Add neighboring tiles
+    stack.push([cx + 1, cy]);
+    stack.push([cx - 1, cy]);
+    stack.push([cx, cy + 1]);
+    stack.push([cx, cy - 1]);
+  }
+}
+
+// Handle mouse wheel zoom
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = e.deltaY < 0 ? 1.1 : 0.9;
+  const newScale = scale * delta;
+
+  // Set zoom limits
+  if (newScale < 0.2 || newScale > 4) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+
+  offsetX -= (mouseX - offsetX) * (1 - delta);
+  offsetY -= (mouseY - offsetY) * (1 - delta);
+  scale = newScale;
+
+  drawGrid();
+});
+
+// Mouse press event
 canvas.addEventListener('mousedown', (e) => {
   if (e.button === 1) {
-    isDragging = true;
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
-    canvas.style.cursor = 'grabbing';
+    // Middle mouse button starts panning
+    isPanning = true;
+    startPan = { x: e.clientX, y: e.clientY };
   } else if (e.button === 0) {
+    // Left click starts painting
     isPainting = true;
+    selectedColor = colorPicker.value;
     handlePaintOrErase(e);
   } else if (e.button === 2) {
+    // Right click starts erasing
     isErasing = true;
     handlePaintOrErase(e);
   }
 });
 
-canvas.addEventListener('mouseup', () => {
-  isDragging = false;
-  isPainting = false;
-  isErasing = false;
-  canvas.style.cursor = 'default';
-});
-
+// Mouse move event
 canvas.addEventListener('mousemove', (e) => {
-  if (isDragging) {
-    const dx = e.clientX - dragStartX;
-    const dy = e.clientY - dragStartY;
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
-    viewOffsetX += dx;
-    viewOffsetY += dy;
-    clampOffsets();
-    requestRedraw();
-  }
-
-  const [tx, ty] = getTileFromMouse(e);
-  if (!lastHoveredTile || tx !== lastHoveredTile[0] || ty !== lastHoveredTile[1]) {
-    hoveredTile = [tx, ty];
-    lastHoveredTile = [tx, ty];
-    requestRedraw();
-  }
-
-  if (isPainting || isErasing) {
+  if (isPanning) {
+    // Update offset by mouse drag
+    offsetX += e.clientX - startPan.x;
+    offsetY += e.clientY - startPan.y;
+    startPan = { x: e.clientX, y: e.clientY };
+    drawGrid();
+  } else if (isPainting || isErasing) {
     handlePaintOrErase(e);
   }
 });
 
-canvas.addEventListener('contextmenu', (e) => {
-  e.preventDefault();
+// End mouse actions
+canvas.addEventListener('mouseup', () => {
+  isPanning = false;
+  isPainting = false;
+  isErasing = false;
 });
 
-canvas.addEventListener('wheel', (e) => {
-  e.preventDefault();
-  const zoomFactor = 1.05;
-  if (e.deltaY < 0) {
-    zoomLevel *= zoomFactor;
-  } else {
-    zoomLevel /= zoomFactor;
-  }
-  zoomLevel = Math.max(0.02, Math.min(2, zoomLevel));
-  clampOffsets();
-  requestRedraw();
-}, { passive: false });
+// Disable right-click context menu
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
-paintColorInput.addEventListener('input', () => {
-  selectedColor = paintColorInput.value;
-  hexDisplay.textContent = selectedColor;
-});
-
-window.addEventListener('resize', () => {
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
-  requestRedraw();
-});
-
-window.addEventListener('load', requestRedraw);
+// Initial render
+drawGrid();
