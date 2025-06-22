@@ -34,8 +34,15 @@ function drawGrid() {
   ctx.save();
   ctx.setTransform(zoomLevel, 0, 0, zoomLevel, viewOffsetX, viewOffsetY);
 
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
+  const cols = Math.ceil(canvas.width / (tileSize * zoomLevel)) + 2;
+  const rows = Math.ceil(canvas.height / (tileSize * zoomLevel)) + 2;
+  const startX = Math.floor(-viewOffsetX / (tileSize * zoomLevel));
+  const startY = Math.floor(-viewOffsetY / (tileSize * zoomLevel));
+
+  for (let y = startY; y < startY + rows; y++) {
+    if (y < 0 || y >= height) continue;
+    for (let x = startX; x < startX + cols; x++) {
+      if (x < 0 || x >= width) continue;
       const key = `${x},${y}`;
       ctx.fillStyle = savedTiles[key] || defaultColor;
       ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
@@ -47,6 +54,9 @@ function drawGrid() {
   ctx.restore();
   zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
 }
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight - document.getElementById('menu-bar').offsetHeight;
 
 canvas.addEventListener('mousedown', (e) => {
   const rect = canvas.getBoundingClientRect();
@@ -64,10 +74,12 @@ canvas.addEventListener('mousedown', (e) => {
   }
 
   if (e.button === 0) {
-    const key = `${tx},${ty}`;
-    savedTiles[key] = selectedColor;
-    saveTileColor(tx, ty, selectedColor);
-    drawGrid();
+    if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
+      const key = `${tx},${ty}`;
+      savedTiles[key] = selectedColor;
+      saveTileColor(tx, ty, selectedColor);
+      drawGrid();
+    }
   }
 });
 
@@ -92,10 +104,12 @@ canvas.addEventListener('contextmenu', (e) => {
   const canvasY = (e.clientY - rect.top - viewOffsetY) / zoomLevel;
   const tx = Math.floor(canvasX / tileSize);
   const ty = Math.floor(canvasY / tileSize);
-  const key = `${tx},${ty}`;
-  delete savedTiles[key];
-  saveTileColor(tx, ty, defaultColor);
-  drawGrid();
+  if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
+    const key = `${tx},${ty}`;
+    delete savedTiles[key];
+    saveTileColor(tx, ty, defaultColor);
+    drawGrid();
+  }
 });
 
 canvas.addEventListener('wheel', (e) => {
@@ -109,6 +123,12 @@ canvas.addEventListener('wheel', (e) => {
 paintColorInput.addEventListener('input', () => {
   selectedColor = paintColorInput.value;
   hexDisplay.textContent = selectedColor;
+});
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight - document.getElementById('menu-bar').offsetHeight;
+  drawGrid();
 });
 
 window.addEventListener('load', drawGrid);
