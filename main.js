@@ -1,8 +1,8 @@
 const map = L.map('map').setView([20, 10], 2);
 
-L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 18,
-  attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a>'
+  attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
 let drawnItems = new L.FeatureGroup();
@@ -39,25 +39,3 @@ fetch('countries-1914.geojson')
           const newOwner = prompt(`Change owner of ${name}`, owner);
           if (newOwner !== null) {
             feature.properties.owner = newOwner;
-            layer.setPopupContent(`
-              <b>${name}</b><br>
-              Owner: ${newOwner}<br>
-              Troops: ${troops}
-            `);
-          }
-        });
-      },
-      style: {
-        color: '#3388ff',
-        weight: 2,
-        fillOpacity: 0.2
-      }
-    });
-
-    geojsonLayer.addTo(drawnItems);
-  });
-
-map.on(L.Draw.Event.CREATED, function (e) {
-  const layer = e.layer;
-  drawnItems.addLayer(layer);
-});
