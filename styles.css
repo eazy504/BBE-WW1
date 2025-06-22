@@ -70,8 +70,8 @@ body, html {
 
 #map-container {
   display: grid;
-  grid-template-columns: repeat(802, 45px);
-  grid-template-rows: repeat(376, 45px);
+  grid-template-columns: repeat(802, 90px);
+  grid-template-rows: repeat(376, 90px);
   width: max-content;
   height: max-content;
   user-select: none;
@@ -81,8 +81,8 @@ body, html {
 }
 
 .tile {
-  width: 45px;
-  height: 45px;
+  width: 90px;
+  height: 90px;
   box-sizing: border-box;
   border: 0.3px solid rgba(0, 0, 0, 0.05);
   background-color: #f0f0f0;
