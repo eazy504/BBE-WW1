@@ -20,6 +20,10 @@ let selectedColor = '#000000';
 let savedTiles = {};
 let showTileBorders = true; // <== Toggle flag for borders
 
+function clamp(val, min, max) {
+24:   return Math.max(min, Math.min(max, val));
+25: }
+
 canvas.width = window.innerWidth - 60; // 30px each side
 canvas.height = window.innerHeight - 70; // 40px top + 30px bottom
 
@@ -142,6 +146,14 @@ canvas.addEventListener('wheel', (e) => {
   offsetY -= (mouseY - offsetY) * (1 - delta);
   scale = newScale;
 
+  const maxOffsetX = 0;
+  const maxOffsetY = 0;
+  const minOffsetX = canvas.width - (gridCols * tileSize * scale);
+  const minOffsetY = canvas.height - (gridRows * tileSize * scale);
+
+  offsetX = clamp(offsetX, minOffsetX, maxOffsetX);
+  offsetY = clamp(offsetY, minOffsetY, maxOffsetY);
+
   drawGrid();
 });
 
@@ -161,11 +173,20 @@ canvas.addEventListener('mousedown', (e) => {
 
 canvas.addEventListener('mousemove', (e) => {
   if (isPanning) {
-    offsetX += e.clientX - startPan.x;
-    offsetY += e.clientY - startPan.y;
-    startPan = { x: e.clientX, y: e.clientY };
-    drawGrid();
-  } else if (isPainting || isErasing) {
+  offsetX += e.clientX - startPan.x;
+  offsetY += e.clientY - startPan.y;
+  startPan = { x: e.clientX, y: e.clientY };
+
+  const maxOffsetX = 0;
+  const maxOffsetY = 0;
+  const minOffsetX = canvas.width - (gridCols * tileSize * scale);
+  const minOffsetY = canvas.height - (gridRows * tileSize * scale);
+
+  offsetX = clamp(offsetX, minOffsetX, maxOffsetX);
+  offsetY = clamp(offsetY, minOffsetY, maxOffsetY);
+
+  drawGrid();
+} else if (isPainting || isErasing) {
     handlePaintOrErase(e);
   }
 });
