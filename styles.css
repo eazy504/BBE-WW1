@@ -5,10 +5,32 @@ body, html {
   font-family: sans-serif;
 }
 
+#toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 8px 16px;
+  background-color: #f4f4f4;
+  border-bottom: 1px solid #ccc;
+  z-index: 10;
+}
+
+#paint-color {
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+#hex-display {
+  margin-left: 8px;
+  font-family: monospace;
+}
+
 #map-container {
   display: grid;
-  grid-template-columns: repeat(802, 10px); /* 802 columns */
-  grid-template-rows: repeat(376, 10px);    /* 376 rows */
+  grid-template-columns: repeat(802, 10px);
+  grid-template-rows: repeat(376, 10px);
+  margin-top: 50px; /* offset for the toolbar */
   width: max-content;
   height: max-content;
 }
@@ -19,5 +41,5 @@ body, html {
   box-sizing: border-box;
   border: 0.1px solid rgba(0, 0, 0, 0.05);
   background-color: #f0f0f0;
-  cursor: pointer;
+  cursor: crosshair;
 }
