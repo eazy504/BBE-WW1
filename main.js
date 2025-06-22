@@ -20,12 +20,18 @@ let isPainting = false;
 let isErasing = false;
 let dragStartX = 0;
 let dragStartY = 0;
-let animationFrame = null;
 let redrawPending = false;
+let currentTool = 'brush';
 
 const savedTiles = JSON.parse(localStorage.getItem('tileColorsCanvas') || '{}');
 
 hexDisplay.textContent = selectedColor;
+
+document.querySelectorAll('input[name="tool"]').forEach(radio => {
+  radio.addEventListener('change', (e) => {
+    currentTool = e.target.value;
+  });
+});
 
 function saveTileColor(x, y, color) {
   const key = `${x},${y}`;
@@ -35,6 +41,35 @@ function saveTileColor(x, y, color) {
     savedTiles[key] = color;
   }
   localStorage.setItem('tileColorsCanvas', JSON.stringify(savedTiles));
+}
+
+function requestRedraw() {
+  if (!redrawPending) {
+    redrawPending = true;
+    requestAnimationFrame(drawGrid);
+  }
+}
+
+function clampOffsets() {
+  const mapWidth = gridCols * tileSize * zoomLevel;
+  const mapHeight = gridRows * tileSize * zoomLevel;
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
+
+  const minX = -mapWidth + canvasWidth;
+  const maxX = 0;
+  const minY = -mapHeight + canvasHeight;
+  const maxY = 0;
+
+  viewOffsetX = Math.min(Math.max(viewOffsetX, minX), maxX);
+  viewOffsetY = Math.min(Math.max(viewOffsetY, minY), maxY);
+}
+
+function getTileFromMouse(e) {
+  const rect = canvas.getBoundingClientRect();
+  const canvasX = (e.clientX - rect.left - viewOffsetX) / zoomLevel;
+  const canvasY = (e.clientY - rect.top - viewOffsetY) / zoomLevel;
+  return [Math.floor(canvasX / tileSize), Math.floor(canvasY / tileSize)];
 }
 
 function drawGrid() {
@@ -73,6 +108,7 @@ function drawGrid() {
     }
   }
 
+  // Outer border
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 8;
   ctx.strokeRect(0, 0, gridCols * tileSize, gridRows * tileSize);
@@ -81,46 +117,56 @@ function drawGrid() {
   zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
 }
 
-function requestRedraw() {
-  if (!redrawPending) {
-    redrawPending = true;
-    requestAnimationFrame(drawGrid);
+function floodFill(x, y, targetColor, replacementColor) {
+  if (targetColor === replacementColor) return;
+  const stack = [[x, y]];
+
+  while (stack.length > 0) {
+    const [cx, cy] = stack.pop();
+    const key = `${cx},${cy}`;
+    const current = savedTiles[key] || defaultColor;
+    if (current !== targetColor) continue;
+
+    savedTiles[key] = replacementColor;
+    saveTileColor(cx, cy, replacementColor);
+
+    const neighbors = [
+      [cx + 1, cy],
+      [cx - 1, cy],
+      [cx, cy + 1],
+      [cx, cy - 1],
+    ];
+
+    for (const [nx, ny] of neighbors) {
+      if (nx >= 0 && nx < gridCols && ny >= 0 && ny < gridRows) {
+        const neighborKey = `${nx},${ny}`;
+        const neighborColor = savedTiles[neighborKey] || defaultColor;
+        if (neighborColor === targetColor) {
+          stack.push([nx, ny]);
+        }
+      }
+    }
   }
-}
-
-function clampOffsets() {
-  const mapWidth = gridCols * tileSize * zoomLevel;
-  const mapHeight = gridRows * tileSize * zoomLevel;
-  const canvasWidth = canvas.width;
-  const canvasHeight = canvas.height;
-
-  const minX = -mapWidth + canvasWidth;
-  const maxX = 0;
-  const minY = -mapHeight + canvasHeight;
-  const maxY = 0;
-
-  viewOffsetX = Math.min(Math.max(viewOffsetX, minX), maxX);
-  viewOffsetY = Math.min(Math.max(viewOffsetY, minY), maxY);
-}
-
-function getTileFromMouse(e) {
-  const rect = canvas.getBoundingClientRect();
-  const canvasX = (e.clientX - rect.left - viewOffsetX) / zoomLevel;
-  const canvasY = (e.clientY - rect.top - viewOffsetY) / zoomLevel;
-  return [Math.floor(canvasX / tileSize), Math.floor(canvasY / tileSize)];
 }
 
 function handlePaintOrErase(e) {
   const [tx, ty] = getTileFromMouse(e);
   if (tx >= 0 && tx < gridCols && ty >= 0 && ty < gridRows) {
     const key = `${tx},${ty}`;
+    const originalColor = savedTiles[key] || defaultColor;
+
     if (isPainting) {
-      savedTiles[key] = selectedColor;
-      saveTileColor(tx, ty, selectedColor);
+      if (currentTool === 'brush') {
+        savedTiles[key] = selectedColor;
+        saveTileColor(tx, ty, selectedColor);
+      } else if (currentTool === 'bucket') {
+        floodFill(tx, ty, originalColor, selectedColor);
+      }
     } else if (isErasing) {
       delete savedTiles[key];
       saveTileColor(tx, ty, defaultColor);
     }
+
     requestRedraw();
   }
 }
@@ -186,7 +232,7 @@ canvas.addEventListener('wheel', (e) => {
   } else {
     zoomLevel /= zoomFactor;
   }
-  zoomLevel = Math.max(0.02, Math.min(2, zoomLevel)); // ⬅️ allow further zoom out
+  zoomLevel = Math.max(0.02, Math.min(2, zoomLevel));
   clampOffsets();
   requestRedraw();
 }, { passive: false });
