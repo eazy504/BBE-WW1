@@ -7,7 +7,6 @@ const zoomDisplay = document.getElementById('zoom-display');
 const tileSize = 90;
 const gridCols = 802;
 const gridRows = 376;
-const paddingTiles = 1;
 
 const defaultColor = '#f0f0f0';
 let selectedColor = paintColorInput.value;
@@ -22,7 +21,6 @@ let hoveredTile = null;
 let animationFrame = null;
 
 const menuHeight = document.getElementById('menu-bar').offsetHeight;
-
 hexDisplay.textContent = selectedColor;
 
 const savedTiles = JSON.parse(localStorage.getItem('tileColorsCanvas') || '{}');
@@ -41,23 +39,25 @@ function drawGrid() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
-  ctx.setTransform(zoomLevel, 0, 0, zoomLevel, viewOffsetX, viewOffsetY + menuHeight);
+  ctx.setTransform(zoomLevel, 0, 0, zoomLevel, viewOffsetX, viewOffsetY);
 
   const visibleCols = Math.ceil(canvas.width / (tileSize * zoomLevel)) + 2;
   const visibleRows = Math.ceil(canvas.height / (tileSize * zoomLevel)) + 2;
-  const startX = Math.floor(-viewOffsetX / (tileSize * zoomLevel)) - paddingTiles;
-  const startY = Math.floor((-viewOffsetY - menuHeight) / (tileSize * zoomLevel)) - paddingTiles;
+  const startX = Math.floor(-viewOffsetX / (tileSize * zoomLevel)) - 1;
+  const startY = Math.floor(-viewOffsetY / (tileSize * zoomLevel)) - 1;
 
   for (let y = startY; y < startY + visibleRows; y++) {
     if (y < 0 || y >= gridRows) continue;
     for (let x = startX; x < startX + visibleCols; x++) {
       if (x < 0 || x >= gridCols) continue;
       const key = `${x},${y}`;
+      const drawX = x * tileSize;
+      const drawY = y * tileSize;
       ctx.fillStyle = savedTiles[key] || defaultColor;
-      ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+      ctx.fillRect(drawX, drawY, tileSize, tileSize);
       ctx.strokeStyle = '#999';
       ctx.lineWidth = 1;
-      ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
+      ctx.strokeRect(drawX, drawY, tileSize, tileSize);
     }
   }
 
@@ -70,7 +70,6 @@ function drawGrid() {
     }
   }
 
-  // Outer border
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 8;
   ctx.strokeRect(0, 0, gridCols * tileSize, gridRows * tileSize);
@@ -87,7 +86,7 @@ function clampOffsets() {
 
   const minX = -mapWidth + canvasWidth;
   const maxX = 0;
-  const minY = -mapHeight + canvasHeight - menuHeight;
+  const minY = -mapHeight + canvasHeight;
   const maxY = 0;
 
   viewOffsetX = Math.min(Math.max(viewOffsetX, minX), maxX);
@@ -97,7 +96,7 @@ function clampOffsets() {
 function getTileFromMouse(e) {
   const rect = canvas.getBoundingClientRect();
   const canvasX = (e.clientX - rect.left - viewOffsetX) / zoomLevel;
-  const canvasY = (e.clientY - rect.top - viewOffsetY - menuHeight) / zoomLevel;
+  const canvasY = (e.clientY - rect.top - viewOffsetY) / zoomLevel;
   const tx = Math.floor(canvasX / tileSize);
   const ty = Math.floor(canvasY / tileSize);
   return [tx, ty];
@@ -118,8 +117,8 @@ function handlePaintOrErase(e) {
   }
 }
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight - menuHeight;
+canvas.width = canvas.clientWidth;
+canvas.height = canvas.clientHeight;
 
 canvas.addEventListener('mousedown', (e) => {
   if (e.button === 1) {
@@ -198,8 +197,8 @@ paintColorInput.addEventListener('input', () => {
 });
 
 window.addEventListener('resize', () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight - menuHeight;
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
   drawGrid();
 });
 
