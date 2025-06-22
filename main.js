@@ -1,14 +1,13 @@
 // Create the map
 const map = L.map('map', {
-  maxBounds: [[-90, -180], [90, 180]], // limit panning to world
-  maxBoundsViscosity: 1.0,             // lock to those bounds completely
+  maxBounds: [[-90, -180], [90, 180]], // keeps the view within world bounds
+  maxBoundsViscosity: 1.0,            // makes the boundary strict
 }).setView([20, 0], 2);
 
-// Add tile layer with English labels
-L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+// Add default OpenStreetMap tiles (in English by default)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 6,
   minZoom: 2,
-  noWrap: true,  // disables horizontal wrapping of tiles
-  attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, ' +
-               '&copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> contributors',
+  noWrap: true, // prevents horizontal tile wrapping
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 }).addTo(map);
