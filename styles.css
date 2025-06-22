@@ -1,10 +1,21 @@
-html, body {
-  height: 100%;
+body, html {
   margin: 0;
   padding: 0;
+  overflow: auto;
 }
 
-#map {
-  width: 100%;
-  height: 100%;
+#map-container {
+  display: grid;
+  grid-template-columns: repeat(1064, 10px); /* 1064 columns of 10px each */
+  grid-template-rows: repeat(540, 10px);     /* 540 rows of 10px each */
+  width: max-content;
+  height: max-content;
+}
+
+.tile {
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border: 0.1px solid rgba(0, 0, 0, 0.05); /* very thin borders for visual grid */
+  background-color: #f0f0f0;
 }
