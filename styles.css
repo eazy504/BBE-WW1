@@ -1,4 +1,4 @@
-/* Page layout */
+/* General layout */
 body, html {
   margin: 0;
   padding: 0;
@@ -18,7 +18,8 @@ body, html {
   padding: 6px 8px;
   z-index: 20;
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .menu-button {
@@ -28,13 +29,24 @@ body, html {
   padding: 6px 12px;
   cursor: pointer;
   font-weight: bold;
+  margin-right: 8px;
 }
 
 .menu-button:hover {
   background: #777;
 }
 
-/* Admin tool panel */
+#zoom-display {
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-left: auto;
+}
+
+/* Admin tools */
 .menu-panel {
   position: fixed;
   top: 40px;
@@ -46,7 +58,7 @@ body, html {
   display: none;
 }
 
-/* Scroll wrapper */
+/* Scrollable map container */
 #map-scroll-wrapper {
   position: absolute;
   top: 80px;
@@ -57,26 +69,26 @@ body, html {
   cursor: default;
 }
 
-/* Map container (grid of tiles) */
+/* Tile grid */
 #map-container {
   display: grid;
-  grid-template-columns: repeat(802, 15px);
-  grid-template-rows: repeat(376, 15px);
+  grid-template-columns: repeat(802, 45px);
+  grid-template-rows: repeat(376, 45px);
   width: max-content;
   height: max-content;
   user-select: none;
   border: 2px solid #333;
   transform-origin: top left;
-  transform: scale(1); /* Start at normal zoom */
+  transform: scale(1);
   background-color: white;
 }
 
-/* Each tile */
+/* Individual tile */
 .tile {
-  width: 15px;
-  height: 15px;
+  width: 45px;
+  height: 45px;
   box-sizing: border-box;
-  border: 0.1px solid rgba(0, 0, 0, 0.05);
+  border: 0.3px solid rgba(0, 0, 0, 0.05);
   background-color: #f0f0f0;
   cursor: crosshair;
 }
