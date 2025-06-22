@@ -2,12 +2,13 @@ body, html {
   margin: 0;
   padding: 0;
   overflow: auto;
+  font-family: sans-serif;
 }
 
 #map-container {
   display: grid;
-  grid-template-columns: repeat(1064, 10px); /* 1064 columns of 10px each */
-  grid-template-rows: repeat(540, 10px);     /* 540 rows of 10px each */
+  grid-template-columns: repeat(802, 10px); /* 802 columns */
+  grid-template-rows: repeat(376, 10px);    /* 376 rows */
   width: max-content;
   height: max-content;
 }
@@ -16,6 +17,7 @@ body, html {
   width: 10px;
   height: 10px;
   box-sizing: border-box;
-  border: 0.1px solid rgba(0, 0, 0, 0.05); /* very thin borders for visual grid */
+  border: 0.1px solid rgba(0, 0, 0, 0.05);
   background-color: #f0f0f0;
+  cursor: pointer;
 }
