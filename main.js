@@ -15,6 +15,10 @@ let isPainting = false;
 let isErasing = false;
 let dragStartX, dragStartY;
 let viewOffsetX = 0, viewOffsetY = 0;
+let hoveredTile = null;
+let animationFrame = null;
+
+const menuHeight = document.getElementById('menu-bar').offsetHeight;
 
 hexDisplay.textContent = selectedColor;
 
@@ -34,12 +38,12 @@ function drawGrid() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save();
-  ctx.setTransform(zoomLevel, 0, 0, zoomLevel, viewOffsetX, viewOffsetY);
+  ctx.setTransform(zoomLevel, 0, 0, zoomLevel, viewOffsetX, viewOffsetY + menuHeight);
 
   const cols = Math.ceil(canvas.width / (tileSize * zoomLevel)) + 2;
   const rows = Math.ceil(canvas.height / (tileSize * zoomLevel)) + 2;
   const startX = Math.floor(-viewOffsetX / (tileSize * zoomLevel));
-  const startY = Math.floor(-viewOffsetY / (tileSize * zoomLevel));
+  const startY = Math.floor((-viewOffsetY - menuHeight) / (tileSize * zoomLevel));
 
   for (let y = startY; y < startY + rows; y++) {
     if (y < 0 || y >= height) continue;
@@ -54,7 +58,13 @@ function drawGrid() {
     }
   }
 
-  // Draw outer map border (thicker)
+  if (hoveredTile) {
+    const [x, y] = hoveredTile;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
+  }
+
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 8;
   ctx.strokeRect(0, 0, width * tileSize, height * tileSize);
@@ -71,20 +81,24 @@ function clampOffsets() {
 
   const minX = -mapWidth + canvasWidth;
   const maxX = 0;
-  const minY = -mapHeight + canvasHeight;
+  const minY = -mapHeight + canvasHeight - menuHeight;
   const maxY = 0;
 
   viewOffsetX = Math.min(Math.max(viewOffsetX, minX), maxX);
   viewOffsetY = Math.min(Math.max(viewOffsetY, minY), maxY);
 }
 
-function handlePaintOrErase(e) {
+function getTileFromMouse(e) {
   const rect = canvas.getBoundingClientRect();
   const canvasX = (e.clientX - rect.left - viewOffsetX) / zoomLevel;
-  const canvasY = (e.clientY - rect.top - viewOffsetY) / zoomLevel;
+  const canvasY = (e.clientY - rect.top - viewOffsetY - menuHeight) / zoomLevel;
   const tx = Math.floor(canvasX / tileSize);
   const ty = Math.floor(canvasY / tileSize);
+  return [tx, ty];
+}
 
+function handlePaintOrErase(e) {
+  const [tx, ty] = getTileFromMouse(e);
   if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
     const key = `${tx},${ty}`;
     if (isPainting) {
@@ -99,7 +113,7 @@ function handlePaintOrErase(e) {
 }
 
 canvas.width = window.innerWidth;
-canvas.height = window.innerHeight - document.getElementById('menu-bar').offsetHeight;
+canvas.height = window.innerHeight - menuHeight;
 
 canvas.addEventListener('mousedown', (e) => {
   if (e.button === 1) {
@@ -107,6 +121,12 @@ canvas.addEventListener('mousedown', (e) => {
     dragStartX = e.clientX;
     dragStartY = e.clientY;
     canvas.style.cursor = 'grabbing';
+
+    function panLoop() {
+      if (!isDragging) return;
+      animationFrame = requestAnimationFrame(panLoop);
+    }
+    panLoop();
   } else if (e.button === 0) {
     isPainting = true;
     handlePaintOrErase(e);
@@ -120,24 +140,38 @@ canvas.addEventListener('mouseup', () => {
   isDragging = false;
   isPainting = false;
   isErasing = false;
+  if (animationFrame) cancelAnimationFrame(animationFrame);
   canvas.style.cursor = 'default';
 });
 
 canvas.addEventListener('mousemove', (e) => {
   if (isDragging) {
-    viewOffsetX += e.clientX - dragStartX;
-    viewOffsetY += e.clientY - dragStartY;
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
     dragStartX = e.clientX;
     dragStartY = e.clientY;
+    viewOffsetX += dx;
+    viewOffsetY += dy;
     clampOffsets();
     drawGrid();
-  } else if (isPainting || isErasing) {
-    handlePaintOrErase(e);
+  }
+
+  const [tx, ty] = getTileFromMouse(e);
+  if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
+    hoveredTile = [tx, ty];
+  } else {
+    hoveredTile = null;
+  }
+
+  if (isPainting || isErasing) {
+    drawGrid();
+  } else {
+    requestAnimationFrame(drawGrid);
   }
 });
 
 canvas.addEventListener('contextmenu', (e) => {
-  e.preventDefault(); // prevent browser context menu
+  e.preventDefault();
 });
 
 canvas.addEventListener('wheel', (e) => {
@@ -156,7 +190,7 @@ paintColorInput.addEventListener('input', () => {
 
 window.addEventListener('resize', () => {
   canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight - document.getElementById('menu-bar').offsetHeight;
+  canvas.height = window.innerHeight - menuHeight;
   drawGrid();
 });
 
