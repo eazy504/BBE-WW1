@@ -19,6 +19,7 @@ const height = 376;
 const defaultColor = '#f0f0f0';
 let isDraggingMap = false;
 let isPainting = false;
+document.body.classList.remove('painter-active');
 let startX, startY, scrollLeft, scrollTop;
 let zoomLevel = 1;
 const minZoom = 0.1;
@@ -51,6 +52,7 @@ for (let y = 0; y < height; y++) {
     tile.addEventListener('mousedown', (e) => {
       if (e.button === 0) {
         isPainting = true;
+        document.body.classList.add('painter-active');
         tile.style.backgroundColor = selectedColor;
         saveTileColor(x, y, selectedColor);
       }
@@ -75,6 +77,7 @@ for (let y = 0; y < height; y++) {
 
 document.addEventListener('mouseup', () => {
   isPainting = false;
+  document.body.classList.remove('painter-active');
   isDraggingMap = false;
   wrapper.style.cursor = 'default';
 });
