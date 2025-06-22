@@ -1,11 +1,39 @@
-/* Make canvas fill the border exactly */
-#canvas-container {
-  position: relative;
+/* Global styles */
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: sans-serif;
 }
 
+/* Top menu bar */
+#menu-bar {
+  height: 40px;
+  background-color: #333;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+
+/* Tool button section */
+#tool-selector button {
+  margin-right: 5px;
+  padding: 5px 10px;
+}
+
+/* Canvas container fits full viewport under menu */
+#canvas-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Border for visible map area */
 #canvas-border {
   position: absolute;
-  top: 40px; /* flush with menu */
+  top: 40px; /* flush under menu */
   left: 30px;
   right: 30px;
   bottom: 30px;
@@ -14,12 +42,12 @@
   z-index: 1;
 }
 
+/* Canvas fills border exactly */
 canvas {
   position: absolute;
   top: 40px;
   left: 30px;
-  right: 30px;
-  bottom: 30px;
-  width: calc(100vw - 60px);  /* exact width of border */
-  height: calc(100vh - 70px); /* 40px top + 30px bottom */
+  width: calc(100vw - 60px);
+  height: calc(100vh - 70px);
+  cursor: crosshair;
 }
