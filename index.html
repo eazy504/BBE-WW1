@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Editable Tile Grid</title>
+  <title>Map Painter</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="map-container"></div>
+  <div id="toolbar">
+    <label for="paint-color">Select Color: </label>
+    <input type="color" id="paint-color" value="#133899" />
+    <span id="hex-display">#133899</span>
+  </div>
 
-  <!-- Hidden color picker input -->
-  <input type="color" id="color-picker" style="position:absolute; visibility:hidden;" />
+  <div id="map-container"></div>
 
   <script src="main.js"></script>
 </body>
