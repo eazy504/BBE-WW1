@@ -13,8 +13,26 @@ paintColorInput.addEventListener('input', () => {
 
 const width = 802;
 const height = 376;
+const defaultColor = '#f0f0f0';
+let isDraggingMap = false;
+let isPainting = false;
+let startX, startY, scrollLeft, scrollTop;
 
-// Generate tiles
+// Load saved colors
+const savedTiles = JSON.parse(localStorage.getItem('tileColors') || '{}');
+
+// Helper: save current tile color to localStorage
+function saveTileColor(x, y, color) {
+  const key = `${x},${y}`;
+  if (color === defaultColor) {
+    delete savedTiles[key]; // remove default colors to save space
+  } else {
+    savedTiles[key] = color;
+  }
+  localStorage.setItem('tileColors', JSON.stringify(savedTiles));
+}
+
+// Create and attach tiles
 for (let y = 0; y < height; y++) {
   for (let x = 0; x < width; x++) {
     const tile = document.createElement('div');
@@ -22,20 +40,51 @@ for (let y = 0; y < height; y++) {
     tile.dataset.x = x;
     tile.dataset.y = y;
 
-    tile.addEventListener('click', () => {
-      tile.style.backgroundColor = selectedColor;
+    // Apply saved color if it exists
+    const key = `${x},${y}`;
+    if (savedTiles[key]) {
+      tile.style.backgroundColor = savedTiles[key];
+    }
+
+    // Left-click to paint
+    tile.addEventListener('mousedown', (e) => {
+      if (e.button === 0) {
+        isPainting = true;
+        tile.style.backgroundColor = selectedColor;
+        saveTileColor(x, y, selectedColor);
+      }
+    });
+
+    // Right-click to erase
+    tile.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      tile.style.backgroundColor = defaultColor;
+      saveTileColor(x, y, defaultColor);
+    });
+
+    // Drag-to-paint
+    tile.addEventListener('mouseover', () => {
+      if (isPainting) {
+        tile.style.backgroundColor = selectedColor;
+        saveTileColor(x, y, selectedColor);
+      }
     });
 
     container.appendChild(tile);
   }
 }
 
-// Drag-to-pan logic
-let isDragging = false;
-let startX, startY, scrollLeft, scrollTop;
+// Stop painting on mouse release
+document.addEventListener('mouseup', () => {
+  isDraggingMap = false;
+  isPainting = false;
+  wrapper.style.cursor = 'grab';
+});
 
+// Drag-to-pan
 wrapper.addEventListener('mousedown', (e) => {
-  isDragging = true;
+  if (e.button !== 0) return;
+  isDraggingMap = true;
   wrapper.style.cursor = 'grabbing';
   startX = e.clientX;
   startY = e.clientY;
@@ -44,17 +93,17 @@ wrapper.addEventListener('mousedown', (e) => {
 });
 
 wrapper.addEventListener('mouseleave', () => {
-  isDragging = false;
+  isDraggingMap = false;
   wrapper.style.cursor = 'grab';
 });
 
 wrapper.addEventListener('mouseup', () => {
-  isDragging = false;
+  isDraggingMap = false;
   wrapper.style.cursor = 'grab';
 });
 
 wrapper.addEventListener('mousemove', (e) => {
-  if (!isDragging) return;
+  if (!isDraggingMap) return;
   const dx = e.clientX - startX;
   const dy = e.clientY - startY;
   wrapper.scrollLeft = scrollLeft - dx;
