@@ -4,6 +4,7 @@ const paintColorInput = document.getElementById('paint-color');
 const hexDisplay = document.getElementById('hex-display');
 const adminPanel = document.getElementById('admin-tools');
 const menuButtons = document.querySelectorAll('.menu-button');
+const zoomDisplay = document.getElementById('zoom-display');
 
 let selectedColor = paintColorInput.value;
 hexDisplay.textContent = selectedColor;
@@ -20,7 +21,7 @@ let isDraggingMap = false;
 let isPainting = false;
 let startX, startY, scrollLeft, scrollTop;
 let zoomLevel = 1;
-const minZoom = 0.5;
+const minZoom = 0.1;
 const maxZoom = 2;
 
 // Load saved tile colors
@@ -36,7 +37,7 @@ function saveTileColor(x, y, color) {
   localStorage.setItem('tileColors', JSON.stringify(savedTiles));
 }
 
-// Create the tile grid
+// Generate tiles
 for (let y = 0; y < height; y++) {
   for (let x = 0; x < width; x++) {
     const tile = document.createElement('div');
@@ -81,7 +82,7 @@ document.addEventListener('mouseup', () => {
   wrapper.style.cursor = 'default';
 });
 
-// Middle-click drag panning
+// Middle mouse panning
 wrapper.addEventListener('mousedown', (e) => {
   if (e.button !== 1) return;
   e.preventDefault();
@@ -111,16 +112,17 @@ wrapper.addEventListener('mouseup', () => {
   wrapper.style.cursor = 'default';
 });
 
-// Mouse wheel zooming
+// Mouse wheel zoom + update display
 wrapper.addEventListener('wheel', (e) => {
   e.preventDefault();
   const delta = Math.sign(e.deltaY);
   zoomLevel -= delta * 0.1;
   zoomLevel = Math.min(maxZoom, Math.max(minZoom, zoomLevel));
   container.style.transform = `scale(${zoomLevel})`;
+  zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
 }, { passive: false });
 
-// Toggle tabs
+// Tab toggle (Admin / None)
 menuButtons.forEach((btn) => {
   btn.addEventListener('click', () => {
     const tab = btn.dataset.tab;
@@ -128,7 +130,7 @@ menuButtons.forEach((btn) => {
   });
 });
 
-// Center the map on load
+// Scroll to center on load
 window.addEventListener('load', () => {
   wrapper.scrollLeft = container.offsetWidth / 2 - wrapper.clientWidth / 2;
   wrapper.scrollTop = container.offsetHeight / 2 - wrapper.clientHeight / 2;
