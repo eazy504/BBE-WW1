@@ -1,8 +1,8 @@
 // Create the map with single horizontal wrap
 const map = L.map('map', {
-  worldCopyJump: true,      // keeps user centered after wrapping
-  continuousWorld: true,    // allows horizontal wrapping
-}).setView([20, 0], 2);      // center the map on the equator
+  worldCopyJump: true,      // allows horizontal wrapping once
+  continuousWorld: true,
+}).setView([20, 0], 2);
 
 // Add CartoDB Light base map (English-labeled)
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -12,15 +12,15 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                '&copy; <a href="https://carto.com/">CARTO</a>',
 }).addTo(map);
 
-// Load and display country borders from GeoJSON
+// Load and display country borders with thicker lines
 fetch('countries.geojson')
   .then(response => response.json())
   .then(data => {
     L.geoJSON(data, {
       style: {
         color: "#000000",    // black border color
-        weight: 1,           // line thickness
-        fillOpacity: 0       // no fill
+        weight: 2.5,         // thicker border lines
+        fillOpacity: 0       // no fill inside countries
       }
     }).addTo(map);
   })
