@@ -6,50 +6,66 @@ body, html {
   height: 100%;
 }
 
-#toolbar {
+#menu-bar {
   position: fixed;
   top: 0;
   left: 0;
+  background: #333;
+  color: #fff;
   width: 100%;
-  padding: 8px 16px;
-  background-color: #f4f4f4;
+  padding: 6px 8px;
+  z-index: 20;
+  display: flex;
+  gap: 10px;
+}
+
+.menu-button {
+  background: #555;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.menu-button:hover {
+  background: #777;
+}
+
+.menu-panel {
+  position: fixed;
+  top: 40px;
+  left: 0;
+  padding: 10px 16px;
+  background: #f4f4f4;
   border-bottom: 1px solid #ccc;
-  z-index: 10;
-}
-
-#paint-color {
-  margin-left: 8px;
-  vertical-align: middle;
-}
-
-#hex-display {
-  margin-left: 8px;
-  font-family: monospace;
+  z-index: 15;
+  display: none;
 }
 
 #map-scroll-wrapper {
   position: absolute;
-  top: 48px; /* height of toolbar */
+  top: 80px;
   bottom: 0;
   left: 0;
   right: 0;
-  overflow: hidden;
-  cursor: grab;
+  overflow: scroll; /* restore scrollbars */
+  cursor: default;
 }
 
 #map-container {
   display: grid;
-  grid-template-columns: repeat(802, 10px);
-  grid-template-rows: repeat(376, 10px);
+  grid-template-columns: repeat(802, 15px); /* ⬅️ bigger tiles */
+  grid-template-rows: repeat(376, 15px);
   width: max-content;
   height: max-content;
   user-select: none;
-  border: 2px solid #333; /* 🔲 Add this line */
+  border: 2px solid #333;
 }
 
 .tile {
-  width: 10px;
-  height: 10px;
+  width: 15px;
+  height: 15px;
   box-sizing: border-box;
   border: 0.1px solid rgba(0, 0, 0, 0.05);
   background-color: #f0f0f0;
