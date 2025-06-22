@@ -153,7 +153,6 @@ canvas.addEventListener('mousemove', (e) => {
     viewOffsetX += dx;
     viewOffsetY += dy;
     clampOffsets();
-    drawGrid();
   }
 
   const [tx, ty] = getTileFromMouse(e);
@@ -163,11 +162,12 @@ canvas.addEventListener('mousemove', (e) => {
     hoveredTile = null;
   }
 
+  // 🔧 FIXED: Ensure paint/erase works while dragging
   if (isPainting || isErasing) {
-    drawGrid();
-  } else {
-    requestAnimationFrame(drawGrid);
+    handlePaintOrErase(e);
   }
+
+  drawGrid();
 });
 
 canvas.addEventListener('contextmenu', (e) => {
