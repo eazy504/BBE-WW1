@@ -3,16 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Map Painter</title>
+  <title>Nation Sim Map Editor</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="toolbar">
-    <label for="paint-color">Select Color: </label>
+
+  <!-- Top Menu Bar -->
+  <div id="menu-bar">
+    <button class="menu-button" data-tab="admin">Admin</button>
+    <button class="menu-button" data-tab="none">Hide Tools</button>
+    <!-- Add more tabs here later -->
+  </div>
+
+  <!-- Admin Tools -->
+  <div id="admin-tools" class="menu-panel">
+    <label for="paint-color">Paint Color:</label>
     <input type="color" id="paint-color" value="#133899" />
     <span id="hex-display">#133899</span>
   </div>
 
+  <!-- Scrollable Map Wrapper -->
   <div id="map-scroll-wrapper">
     <div id="map-container"></div>
   </div>
