@@ -1,4 +1,3 @@
-/* General page layout */
 body, html {
   margin: 0;
   padding: 0;
@@ -7,7 +6,6 @@ body, html {
   height: 100%;
 }
 
-/* Top menu bar */
 #menu-bar {
   position: fixed;
   top: 0;
@@ -45,7 +43,6 @@ body, html {
   border-radius: 4px;
 }
 
-/* Admin tools panel */
 .menu-panel {
   position: fixed;
   top: 40px;
@@ -57,22 +54,20 @@ body, html {
   display: none;
 }
 
-/* Scroll wrapper box (framed view) */
 #map-scroll-wrapper {
-  position: absolute;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 1000px;
-  height: 700px;
+  position: fixed;
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 16px;
+  border: 3px solid #444;
+  background: #ccc;
   overflow: scroll;
-  border: 2px solid #444;
-  box-shadow: 0 0 10px rgba(0,0,0,0.25);
-  background: #ddd;
-  cursor: default;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 10;
 }
 
-/* Tile grid */
 #map-container {
   display: grid;
   grid-template-columns: repeat(802, 45px);
@@ -80,13 +75,11 @@ body, html {
   width: max-content;
   height: max-content;
   user-select: none;
-  border: 2px solid #333;
   transform-origin: top left;
   transform: scale(1);
   background-color: white;
 }
 
-/* Each tile */
 .tile {
   width: 45px;
   height: 45px;
