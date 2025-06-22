@@ -8,8 +8,8 @@ const gridCols = 802;
 const gridRows = 376;
 const defaultColor = '#ffffff';
 
-canvas.width = window.innerWidth - 60;  // 30px margin left and right
-canvas.height = window.innerHeight - 70; // 40px top menu + 30px bottom margin
+canvas.width = window.innerWidth - 60;  // 30px margin on left/right
+canvas.height = window.innerHeight - 70; // 40px menu bar + 30px bottom
 
 let scale = 1;
 let offsetX = 0;
@@ -23,7 +23,18 @@ let selectedColor = '#000000';
 let savedTiles = {};
 let showTileBorders = true;
 
-// Clamp helper function
+// Center the tile grid on load if it's smaller than canvas
+const totalWidth = gridCols * tileSize;
+const totalHeight = gridRows * tileSize;
+
+if (totalWidth * scale < canvas.width) {
+  offsetX = (canvas.width - totalWidth * scale) / 2;
+}
+if (totalHeight * scale < canvas.height) {
+  offsetY = (canvas.height - totalHeight * scale) / 2;
+}
+
+// Clamp helper
 function clamp(val, min, max) {
   return Math.max(min, Math.min(max, val));
 }
@@ -107,7 +118,7 @@ function floodFillWithinRadius(x, y, targetColor, replacementColor, erase = fals
 
   const stack = [[x, y]];
   const filled = new Set();
-  const maxTiles = 441; // 21x21 limit
+  const maxTiles = 441; // 21x21 area
 
   const inBounds = (cx, cy) =>
     cx >= 0 && cx < gridCols && cy >= 0 && cy < gridRows &&
