@@ -7,23 +7,23 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Menu bar at the top -->
+  <!-- Menu bar -->
   <div id="menu-bar">
     <div id="tool-selector">
       <button onclick="setTool('brush')">Brush</button>
       <button onclick="setTool('bucket')">Bucket</button>
       <button onclick="setTool('bucket-eraser')">Bucket Eraser</button>
+      <button onclick="toggleBorders()">Toggle Borders</button>
     </div>
     <input type="color" id="color-picker" />
     <div id="zoom-display">Zoom: 100%</div>
   </div>
 
-  <!-- Canvas container for the tile map -->
+  <!-- Canvas container -->
   <div id="canvas-container">
     <canvas id="mapCanvas"></canvas>
   </div>
 
-  <!-- Main game script -->
   <script src="main.js"></script>
 </body>
 </html>
