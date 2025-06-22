@@ -72,8 +72,8 @@ body, html {
   display: grid;
   grid-template-columns: repeat(802, 90px);
   grid-template-rows: repeat(376, 90px);
-  width: max-content;
-  height: max-content;
+  width: 72180px;
+  height: 33840px;
   user-select: none;
   transform-origin: top left;
   transform: scale(1);
@@ -87,4 +87,8 @@ body, html {
   border: 0.3px solid rgba(0, 0, 0, 0.05);
   background-color: #f0f0f0;
   cursor: crosshair;
+}
+
+.painter-active .tile {
+  cursor: url('https://cdn-icons-png.flaticon.com/128/616/616408.png') 0 32, auto;
 }
