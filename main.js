@@ -19,8 +19,6 @@ const defaultColor = '#f0f0f0';
 let isDraggingMap = false;
 let isPainting = false;
 let startX, startY, scrollLeft, scrollTop;
-
-// Zoom setup
 let zoomLevel = 1;
 const minZoom = 0.5;
 const maxZoom = 2;
@@ -38,7 +36,7 @@ function saveTileColor(x, y, color) {
   localStorage.setItem('tileColors', JSON.stringify(savedTiles));
 }
 
-// Create tiles
+// Create the tile grid
 for (let y = 0; y < height; y++) {
   for (let x = 0; x < width; x++) {
     const tile = document.createElement('div');
@@ -76,13 +74,14 @@ for (let y = 0; y < height; y++) {
   }
 }
 
+// Stop painting
 document.addEventListener('mouseup', () => {
-  isDraggingMap = false;
   isPainting = false;
+  isDraggingMap = false;
   wrapper.style.cursor = 'default';
 });
 
-// ✅ Middle mouse button pans the map
+// Middle-click drag panning
 wrapper.addEventListener('mousedown', (e) => {
   if (e.button !== 1) return;
   e.preventDefault();
@@ -92,6 +91,14 @@ wrapper.addEventListener('mousedown', (e) => {
   startY = e.clientY;
   scrollLeft = wrapper.scrollLeft;
   scrollTop = wrapper.scrollTop;
+});
+
+wrapper.addEventListener('mousemove', (e) => {
+  if (!isDraggingMap) return;
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+  wrapper.scrollLeft = scrollLeft - dx;
+  wrapper.scrollTop = scrollTop - dy;
 });
 
 wrapper.addEventListener('mouseleave', () => {
@@ -104,15 +111,7 @@ wrapper.addEventListener('mouseup', () => {
   wrapper.style.cursor = 'default';
 });
 
-wrapper.addEventListener('mousemove', (e) => {
-  if (!isDraggingMap) return;
-  const dx = e.clientX - startX;
-  const dy = e.clientY - startY;
-  wrapper.scrollLeft = scrollLeft - dx;
-  wrapper.scrollTop = scrollTop - dy;
-});
-
-// ✅ Zoom with mouse wheel
+// Mouse wheel zooming
 wrapper.addEventListener('wheel', (e) => {
   e.preventDefault();
   const delta = Math.sign(e.deltaY);
@@ -127,4 +126,10 @@ menuButtons.forEach((btn) => {
     const tab = btn.dataset.tab;
     adminPanel.style.display = (tab === 'admin') ? 'block' : 'none';
   });
+});
+
+// Center the map on load
+window.addEventListener('load', () => {
+  wrapper.scrollLeft = container.offsetWidth / 2 - wrapper.clientWidth / 2;
+  wrapper.scrollTop = container.offsetHeight / 2 - wrapper.clientHeight / 2;
 });
