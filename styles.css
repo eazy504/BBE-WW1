@@ -10,14 +10,24 @@ body {
   color: white;
   padding: 8px 16px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   height: 40px;
   box-sizing: border-box;
+  gap: 16px;
 }
 
 #paint-color {
   margin-left: 10px;
+}
+
+#hex-display {
+  margin-right: 16px;
+}
+
+#tool-selector label {
+  margin-right: 8px;
+  cursor: pointer;
 }
 
 #zoom-display {
@@ -27,7 +37,7 @@ body {
 
 #map-canvas {
   position: absolute;
-  top: 40px; /* flush to menu bar */
+  top: 40px;
   left: 30px;
   right: 30px;
   bottom: 30px;
