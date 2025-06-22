@@ -1,31 +1,23 @@
-const container = document.getElementById('map-container');
+const canvas = document.getElementById('map-canvas');
+const ctx = canvas.getContext('2d');
 const wrapper = document.getElementById('map-scroll-wrapper');
 const paintColorInput = document.getElementById('paint-color');
 const hexDisplay = document.getElementById('hex-display');
-const adminPanel = document.getElementById('admin-tools');
-const menuButtons = document.querySelectorAll('.menu-button');
 const zoomDisplay = document.getElementById('zoom-display');
 
-let selectedColor = paintColorInput.value;
-hexDisplay.textContent = selectedColor;
-
-paintColorInput.addEventListener('input', () => {
-  selectedColor = paintColorInput.value;
-  hexDisplay.textContent = selectedColor;
-});
-
+const tileSize = 90;
 const width = 802;
 const height = 376;
 const defaultColor = '#f0f0f0';
-let isDraggingMap = false;
-let isPainting = false;
-document.body.classList.remove('painter-active');
-let startX, startY, scrollLeft, scrollTop;
+let selectedColor = paintColorInput.value;
 let zoomLevel = 1;
-const minZoom = 0.1;
-const maxZoom = 2;
+let isDragging = false;
+let dragStartX, dragStartY;
+let offsetX = 0, offsetY = 0;
 
-const savedTiles = JSON.parse(localStorage.getItem('tileColors') || '{}');
+hexDisplay.textContent = selectedColor;
+
+const savedTiles = JSON.parse(localStorage.getItem('tileColorsCanvas') || '{}');
 
 function saveTileColor(x, y, color) {
   const key = `${x},${y}`;
@@ -34,122 +26,87 @@ function saveTileColor(x, y, color) {
   } else {
     savedTiles[key] = color;
   }
-  localStorage.setItem('tileColors', JSON.stringify(savedTiles));
+  localStorage.setItem('tileColorsCanvas', JSON.stringify(savedTiles));
 }
 
-for (let y = 0; y < height; y++) {
-  for (let x = 0; x < width; x++) {
-    const tile = document.createElement('div');
-    tile.classList.add('tile');
-    tile.dataset.x = x;
-    tile.dataset.y = y;
-
-    const key = `${x},${y}`;
-    if (savedTiles[key]) {
-      tile.style.backgroundColor = savedTiles[key];
+function drawGrid() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.setTransform(zoomLevel, 0, 0, zoomLevel, offsetX, offsetY);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const key = `${x},${y}`;
+      ctx.fillStyle = savedTiles[key] || defaultColor;
+      ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+      ctx.strokeStyle = '#999';
+      ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
     }
-
-    tile.addEventListener('mousedown', (e) => {
-      if (e.button === 0) {
-        isPainting = true;
-        document.body.classList.add('painter-active');
-        tile.style.backgroundColor = selectedColor;
-        saveTileColor(x, y, selectedColor);
-      }
-    });
-
-    tile.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      tile.style.backgroundColor = defaultColor;
-      saveTileColor(x, y, defaultColor);
-    });
-
-    tile.addEventListener('mouseover', () => {
-      if (isPainting) {
-        tile.style.backgroundColor = selectedColor;
-        saveTileColor(x, y, selectedColor);
-      }
-    });
-
-    container.appendChild(tile);
   }
+  ctx.restore();
+  zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
 }
 
-document.addEventListener('mouseup', () => {
-  isPainting = false;
-  document.body.classList.remove('painter-active');
-  isDraggingMap = false;
-  wrapper.style.cursor = 'default';
+canvas.addEventListener('mousedown', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left - offsetX) / zoomLevel;
+  const y = (e.clientY - rect.top - offsetY) / zoomLevel;
+  const tx = Math.floor(x / tileSize);
+  const ty = Math.floor(y / tileSize);
+
+  if (e.button === 1) {
+    isDragging = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    canvas.style.cursor = 'grabbing';
+    return;
+  }
+
+  if (e.button === 0) {
+    const key = `${tx},${ty}`;
+    savedTiles[key] = selectedColor;
+    saveTileColor(tx, ty, selectedColor);
+    drawGrid();
+  }
 });
 
-wrapper.addEventListener('mousedown', (e) => {
-  if (e.button !== 1) return;
+canvas.addEventListener('mouseup', () => {
+  isDragging = false;
+  canvas.style.cursor = 'default';
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  offsetX += e.clientX - dragStartX;
+  offsetY += e.clientY - dragStartY;
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+  drawGrid();
+});
+
+canvas.addEventListener('contextmenu', (e) => {
   e.preventDefault();
-  isDraggingMap = true;
-  wrapper.style.cursor = 'grabbing';
-  startX = e.clientX;
-  startY = e.clientY;
-  scrollLeft = wrapper.scrollLeft;
-  scrollTop = wrapper.scrollTop;
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left - offsetX) / zoomLevel;
+  const y = (e.clientY - rect.top - offsetY) / zoomLevel;
+  const tx = Math.floor(x / tileSize);
+  const ty = Math.floor(y / tileSize);
+  const key = `${tx},${ty}`;
+  delete savedTiles[key];
+  saveTileColor(tx, ty, defaultColor);
+  drawGrid();
 });
 
-wrapper.addEventListener('mousemove', (e) => {
-  if (!isDraggingMap) return;
-  const dx = e.clientX - startX;
-  const dy = e.clientY - startY;
-  wrapper.scrollLeft = scrollLeft - dx;
-  wrapper.scrollTop = scrollTop - dy;
-});
-
-wrapper.addEventListener('mouseleave', () => {
-  isDraggingMap = false;
-  wrapper.style.cursor = 'default';
-});
-
-wrapper.addEventListener('mouseup', () => {
-  isDraggingMap = false;
-  wrapper.style.cursor = 'default';
-});
-
-wrapper.addEventListener('wheel', (e) => {
+canvas.addEventListener('wheel', (e) => {
   e.preventDefault();
-  const delta = Math.sign(e.deltaY);
-  zoomLevel -= delta * 0.1;
-  zoomLevel = Math.min(maxZoom, Math.max(minZoom, zoomLevel));
-  container.style.transform = `scale(${zoomLevel})`;
-  zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
+  const zoomFactor = 0.1;
+  zoomLevel -= Math.sign(e.deltaY) * zoomFactor;
+  zoomLevel = Math.max(0.01, Math.min(2, zoomLevel));
+  drawGrid();
 }, { passive: false });
 
-menuButtons.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const tab = btn.dataset.tab;
-    adminPanel.style.display = (tab === 'admin') ? 'block' : 'none';
-  });
+paintColorInput.addEventListener('input', () => {
+  selectedColor = paintColorInput.value;
+  hexDisplay.textContent = selectedColor;
 });
 
-function fitMapToContainer() {
-  const container = document.getElementById("map-scroll-wrapper");
-  const map = document.getElementById("map-container");
-
-  const containerWidth = container.clientWidth;
-  const containerHeight = container.clientHeight;
-
-  const mapWidth = map.offsetWidth;
-  const mapHeight = map.offsetHeight;
-
-  const scaleX = containerWidth / mapWidth;
-  const scaleY = containerHeight / mapHeight;
-
-  const newScale = Math.min(scaleX, scaleY);
-  map.style.transform = `scale(${newScale})`;
-
-  // Scroll to center
-  container.scrollLeft = (mapWidth * newScale - containerWidth) / 2;
-  container.scrollTop = (mapHeight * newScale - containerHeight) / 2;
-
-  // Update Zoom Display
-  document.getElementById("zoom-display").textContent = `Zoom: ${(newScale * 100).toFixed(0)}%`;
-}
-
-window.addEventListener("load", fitMapToContainer);
-window.addEventListener("resize", fitMapToContainer);
+window.addEventListener('load', drawGrid);
