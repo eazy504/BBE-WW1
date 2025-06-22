@@ -47,13 +47,14 @@ function drawGrid() {
       ctx.fillStyle = savedTiles[key] || defaultColor;
       ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
       ctx.strokeStyle = '#999';
+      ctx.lineWidth = 1;
       ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
     }
   }
 
-  // Draw outer map border
+  // Draw outer map border (thicker)
   ctx.strokeStyle = '#000';
-  ctx.lineWidth = 5;
+  ctx.lineWidth = 8;
   ctx.strokeRect(0, 0, width * tileSize, height * tileSize);
 
   ctx.restore();
@@ -66,10 +67,10 @@ function clampOffsets() {
   const canvasWidth = canvas.width;
   const canvasHeight = canvas.height;
 
-  const minX = -mapWidth + 50;
-  const maxX = canvasWidth - 50;
-  const minY = -mapHeight + 50;
-  const maxY = canvasHeight - 50;
+  const minX = -mapWidth + canvasWidth;
+  const maxX = 0;
+  const minY = -mapHeight + canvasHeight;
+  const maxY = 0;
 
   viewOffsetX = Math.min(Math.max(viewOffsetX, minX), maxX);
   viewOffsetY = Math.min(Math.max(viewOffsetY, minY), maxY);
