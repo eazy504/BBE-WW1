@@ -8,8 +8,14 @@ const gridCols = 802;
 const gridRows = 376;
 const defaultColor = '#ffffff';
 
-canvas.width = window.innerWidth - 60;  // 30px margin on left/right
-canvas.height = window.innerHeight - 70; // 40px menu bar + 30px bottom
+const border = document.getElementById('canvas-border');
+const borderRect = border.getBoundingClientRect();
+
+// Set canvas size and position to match border
+canvas.width = borderRect.width;
+canvas.height = borderRect.height;
+canvas.style.left = `${borderRect.left}px`;
+canvas.style.top = `${borderRect.top}px`;
 
 let scale = 1;
 let offsetX = 0;
@@ -23,15 +29,15 @@ let selectedColor = '#000000';
 let savedTiles = {};
 let showTileBorders = true;
 
-// Center the tile grid on load if it's smaller than canvas
-const totalWidth = gridCols * tileSize;
-const totalHeight = gridRows * tileSize;
+// Center grid if smaller than canvas (border area)
+const totalWidth = gridCols * tileSize * scale;
+const totalHeight = gridRows * tileSize * scale;
 
-if (totalWidth * scale < canvas.width) {
-  offsetX = (canvas.width - totalWidth * scale) / 2;
+if (totalWidth < canvas.width) {
+  offsetX = (canvas.width - totalWidth) / 2;
 }
-if (totalHeight * scale < canvas.height) {
-  offsetY = (canvas.height - totalHeight * scale) / 2;
+if (totalHeight < canvas.height) {
+  offsetY = (canvas.height - totalHeight) / 2;
 }
 
 // Clamp helper
@@ -118,7 +124,7 @@ function floodFillWithinRadius(x, y, targetColor, replacementColor, erase = fals
 
   const stack = [[x, y]];
   const filled = new Set();
-  const maxTiles = 441; // 21x21 area
+  const maxTiles = 441;
 
   const inBounds = (cx, cy) =>
     cx >= 0 && cx < gridCols && cy >= 0 && cy < gridRows &&
