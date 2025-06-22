@@ -1,48 +1,40 @@
+/* Global styles */
 body {
   margin: 0;
   overflow: hidden;
-  background-color: #222;
   font-family: sans-serif;
 }
 
+/* Top menu bar */
 #menu-bar {
+  height: 40px;
   background-color: #333;
   color: white;
-  padding: 8px 16px;
   display: flex;
-  justify-content: flex-start;
   align-items: center;
-  height: 40px;
-  box-sizing: border-box;
-  gap: 16px;
+  justify-content: space-between;
+  padding: 0 10px;
 }
 
-#paint-color {
-  margin-left: 10px;
+/* Tool button section */
+#tool-selector button {
+  margin-right: 5px;
+  padding: 5px 10px;
 }
 
-#hex-display {
-  margin-right: 16px;
+/* Canvas container fits full viewport under menu */
+#canvas-container {
+  position: relative;
+  width: 100vw;
+  height: calc(100vh - 40px);
+  overflow: hidden;
 }
 
-#tool-selector label {
-  margin-right: 8px;
-  cursor: pointer;
-}
-
-#zoom-display {
-  margin-left: auto;
-  padding-left: 16px;
-}
-
-#map-canvas {
-  position: absolute;
-  top: 40px;
-  left: 30px;
-  right: 30px;
-  bottom: 30px;
-  width: calc(100vw - 60px);
-  height: calc(100vh - 70px);
+/* Main canvas */
+canvas {
   display: block;
-  cursor: default;
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: crosshair;
 }
