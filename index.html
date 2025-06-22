@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- Menu bar at the top -->
   <div id="menu-bar">
     <div id="tool-selector">
       <button onclick="setTool('brush')">Brush</button>
@@ -16,9 +17,13 @@
     <input type="color" id="color-picker" />
     <div id="zoom-display">Zoom: 100%</div>
   </div>
+
+  <!-- Canvas container for the tile map -->
   <div id="canvas-container">
     <canvas id="mapCanvas"></canvas>
   </div>
+
+  <!-- Main game script -->
   <script src="main.js"></script>
 </body>
 </html>
