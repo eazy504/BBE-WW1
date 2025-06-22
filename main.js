@@ -8,14 +8,8 @@ const gridCols = 802;
 const gridRows = 376;
 const defaultColor = '#ffffff';
 
-const border = document.getElementById('canvas-border');
-const borderRect = border.getBoundingClientRect();
-
-// Set canvas size and position to match border
-canvas.width = borderRect.width;
-canvas.height = borderRect.height;
-canvas.style.left = `${borderRect.left}px`;
-canvas.style.top = `${borderRect.top}px`;
+canvas.width = window.innerWidth - 60;
+canvas.height = window.innerHeight - 70;
 
 let scale = 1;
 let offsetX = 0;
@@ -29,7 +23,7 @@ let selectedColor = '#000000';
 let savedTiles = {};
 let showTileBorders = true;
 
-// Center grid if smaller than canvas (border area)
+// Center the tile grid on load if it's smaller than the canvas
 const totalWidth = gridCols * tileSize * scale;
 const totalHeight = gridRows * tileSize * scale;
 
@@ -40,7 +34,6 @@ if (totalHeight < canvas.height) {
   offsetY = (canvas.height - totalHeight) / 2;
 }
 
-// Clamp helper
 function clamp(val, min, max) {
   return Math.max(min, Math.min(max, val));
 }
