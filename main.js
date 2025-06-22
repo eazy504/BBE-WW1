@@ -24,7 +24,6 @@ let redrawPending = false;
 let currentTool = 'brush';
 
 const savedTiles = JSON.parse(localStorage.getItem('tileColorsCanvas') || '{}');
-
 hexDisplay.textContent = selectedColor;
 
 document.querySelectorAll('input[name="tool"]').forEach(radio => {
@@ -35,7 +34,7 @@ document.querySelectorAll('input[name="tool"]').forEach(radio => {
 
 function saveTileColor(x, y, color) {
   const key = `${x},${y}`;
-  if (color === defaultColor) {
+  if (color === defaultColor || !color) {
     delete savedTiles[key];
   } else {
     savedTiles[key] = color;
@@ -108,7 +107,6 @@ function drawGrid() {
     }
   }
 
-  // Outer border
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 8;
   ctx.strokeRect(0, 0, gridCols * tileSize, gridRows * tileSize);
@@ -117,18 +115,30 @@ function drawGrid() {
   zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
 }
 
-function floodFill(x, y, targetColor, replacementColor) {
-  if (targetColor === replacementColor) return;
-  const stack = [[x, y]];
+function boundedFloodFill(x, y, targetColor, replacementColor, erase = false, maxTiles = 100) {
+  if (!erase && targetColor === replacementColor) return;
 
-  while (stack.length > 0) {
+  const stack = [[x, y]];
+  const filled = new Set();
+  const boundsCheck = (cx, cy) => cx >= 0 && cx < gridCols && cy >= 0 && cy < gridRows;
+
+  while (stack.length > 0 && filled.size < maxTiles) {
     const [cx, cy] = stack.pop();
     const key = `${cx},${cy}`;
-    const current = savedTiles[key] || defaultColor;
-    if (current !== targetColor) continue;
+    if (filled.has(key)) continue;
 
-    savedTiles[key] = replacementColor;
-    saveTileColor(cx, cy, replacementColor);
+    const currentColor = savedTiles[key] || defaultColor;
+    if (currentColor !== targetColor) continue;
+
+    if (erase) {
+      delete savedTiles[key];
+      saveTileColor(cx, cy, defaultColor);
+    } else {
+      savedTiles[key] = replacementColor;
+      saveTileColor(cx, cy, replacementColor);
+    }
+
+    filled.add(key);
 
     const neighbors = [
       [cx + 1, cy],
@@ -138,8 +148,8 @@ function floodFill(x, y, targetColor, replacementColor) {
     ];
 
     for (const [nx, ny] of neighbors) {
-      if (nx >= 0 && nx < gridCols && ny >= 0 && ny < gridRows) {
-        const neighborKey = `${nx},${ny}`;
+      const neighborKey = `${nx},${ny}`;
+      if (!filled.has(neighborKey) && boundsCheck(nx, ny)) {
         const neighborColor = savedTiles[neighborKey] || defaultColor;
         if (neighborColor === targetColor) {
           stack.push([nx, ny]);
@@ -160,7 +170,9 @@ function handlePaintOrErase(e) {
         savedTiles[key] = selectedColor;
         saveTileColor(tx, ty, selectedColor);
       } else if (currentTool === 'bucket') {
-        floodFill(tx, ty, originalColor, selectedColor);
+        boundedFloodFill(tx, ty, originalColor, selectedColor, false, 100);
+      } else if (currentTool === 'bucket-eraser') {
+        boundedFloodFill(tx, ty, originalColor, null, true, 100);
       }
     } else if (isErasing) {
       delete savedTiles[key];
