@@ -27,7 +27,7 @@ body {
 
 #map-canvas {
   position: absolute;
-  top: 40px; /* flush below the menu bar */
+  top: 40px; /* flush to menu bar */
   left: 30px;
   right: 30px;
   bottom: 30px;
