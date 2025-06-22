@@ -5,8 +5,10 @@ const hexDisplay = document.getElementById('hex-display');
 const zoomDisplay = document.getElementById('zoom-display');
 
 const tileSize = 90;
-const width = 802;
-const height = 376;
+const gridCols = 802;
+const gridRows = 376;
+const paddingTiles = 1;
+
 const defaultColor = '#f0f0f0';
 let selectedColor = paintColorInput.value;
 let zoomLevel = 1;
@@ -14,7 +16,8 @@ let isDragging = false;
 let isPainting = false;
 let isErasing = false;
 let dragStartX, dragStartY;
-let viewOffsetX = 0, viewOffsetY = 0;
+let viewOffsetX = 0;
+let viewOffsetY = 0;
 let hoveredTile = null;
 let animationFrame = null;
 
@@ -40,15 +43,15 @@ function drawGrid() {
   ctx.save();
   ctx.setTransform(zoomLevel, 0, 0, zoomLevel, viewOffsetX, viewOffsetY + menuHeight);
 
-  const cols = Math.ceil(canvas.width / (tileSize * zoomLevel)) + 2;
-  const rows = Math.ceil(canvas.height / (tileSize * zoomLevel)) + 2;
-  const startX = Math.floor(-viewOffsetX / (tileSize * zoomLevel));
-  const startY = Math.floor((-viewOffsetY - menuHeight) / (tileSize * zoomLevel));
+  const visibleCols = Math.ceil(canvas.width / (tileSize * zoomLevel)) + 2;
+  const visibleRows = Math.ceil(canvas.height / (tileSize * zoomLevel)) + 2;
+  const startX = Math.floor(-viewOffsetX / (tileSize * zoomLevel)) - paddingTiles;
+  const startY = Math.floor((-viewOffsetY - menuHeight) / (tileSize * zoomLevel)) - paddingTiles;
 
-  for (let y = startY; y < startY + rows; y++) {
-    if (y < 0 || y >= height) continue;
-    for (let x = startX; x < startX + cols; x++) {
-      if (x < 0 || x >= width) continue;
+  for (let y = startY; y < startY + visibleRows; y++) {
+    if (y < 0 || y >= gridRows) continue;
+    for (let x = startX; x < startX + visibleCols; x++) {
+      if (x < 0 || x >= gridCols) continue;
       const key = `${x},${y}`;
       ctx.fillStyle = savedTiles[key] || defaultColor;
       ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
@@ -60,22 +63,25 @@ function drawGrid() {
 
   if (hoveredTile) {
     const [x, y] = hoveredTile;
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
+    if (x >= 0 && x < gridCols && y >= 0 && y < gridRows) {
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
+    }
   }
 
+  // Outer border
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 8;
-  ctx.strokeRect(0, 0, width * tileSize, height * tileSize);
+  ctx.strokeRect(0, 0, gridCols * tileSize, gridRows * tileSize);
 
   ctx.restore();
   zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
 }
 
 function clampOffsets() {
-  const mapWidth = width * tileSize * zoomLevel;
-  const mapHeight = height * tileSize * zoomLevel;
+  const mapWidth = gridCols * tileSize * zoomLevel;
+  const mapHeight = gridRows * tileSize * zoomLevel;
   const canvasWidth = canvas.width;
   const canvasHeight = canvas.height;
 
@@ -99,7 +105,7 @@ function getTileFromMouse(e) {
 
 function handlePaintOrErase(e) {
   const [tx, ty] = getTileFromMouse(e);
-  if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
+  if (tx >= 0 && tx < gridCols && ty >= 0 && ty < gridRows) {
     const key = `${tx},${ty}`;
     if (isPainting) {
       savedTiles[key] = selectedColor;
@@ -156,13 +162,12 @@ canvas.addEventListener('mousemove', (e) => {
   }
 
   const [tx, ty] = getTileFromMouse(e);
-  if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
+  if (tx >= 0 && tx < gridCols && ty >= 0 && ty < gridRows) {
     hoveredTile = [tx, ty];
   } else {
     hoveredTile = null;
   }
 
-  // 🔧 FIXED: Ensure paint/erase works while dragging
   if (isPainting || isErasing) {
     handlePaintOrErase(e);
   }
@@ -176,8 +181,12 @@ canvas.addEventListener('contextmenu', (e) => {
 
 canvas.addEventListener('wheel', (e) => {
   e.preventDefault();
-  const zoomFactor = 0.1;
-  zoomLevel -= Math.sign(e.deltaY) * zoomFactor;
+  const zoomFactor = 1.05;
+  if (e.deltaY < 0) {
+    zoomLevel *= zoomFactor;
+  } else {
+    zoomLevel /= zoomFactor;
+  }
   zoomLevel = Math.max(0.05, Math.min(2, zoomLevel));
   clampOffsets();
   drawGrid();
