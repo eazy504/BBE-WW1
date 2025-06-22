@@ -1,4 +1,4 @@
-/* General page layout */
+/* Page layout */
 body, html {
   margin: 0;
   padding: 0;
@@ -34,9 +34,49 @@ body, html {
   background: #777;
 }
 
-/* Admin tools panel */
+/* Admin tool panel */
 .menu-panel {
   position: fixed;
   top: 40px;
   left: 0;
-  paddin
+  padding: 10px 16px;
+  background: #f4f4f4;
+  border-bottom: 1px solid #ccc;
+  z-index: 15;
+  display: none;
+}
+
+/* Scroll wrapper */
+#map-scroll-wrapper {
+  position: absolute;
+  top: 80px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow: scroll;
+  cursor: default;
+}
+
+/* Map container (grid of tiles) */
+#map-container {
+  display: grid;
+  grid-template-columns: repeat(802, 15px);
+  grid-template-rows: repeat(376, 15px);
+  width: max-content;
+  height: max-content;
+  user-select: none;
+  border: 2px solid #333;
+  transform-origin: top left;
+  transform: scale(1); /* Start at normal zoom */
+  background-color: white;
+}
+
+/* Each tile */
+.tile {
+  width: 15px;
+  height: 15px;
+  box-sizing: border-box;
+  border: 0.1px solid rgba(0, 0, 0, 0.05);
+  background-color: #f0f0f0;
+  cursor: crosshair;
+}
