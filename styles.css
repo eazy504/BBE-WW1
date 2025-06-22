@@ -27,13 +27,12 @@ body {
 
 #map-canvas {
   position: absolute;
-  top: 40px; /* directly below the menu */
-  left: 90px; /* one tile of margin (west) */
-  right: 90px; /* one tile of margin (east) */
-  bottom: 90px; /* one tile of margin (south) */
-  margin: 0;
-  width: calc(100vw - 180px); /* full width minus 2x margin */
-  height: calc(100vh - 130px); /* minus menu height and bottom margin */
+  top: 40px; /* flush below the menu bar */
+  left: 30px;
+  right: 30px;
+  bottom: 30px;
+  width: calc(100vw - 60px);
+  height: calc(100vh - 70px);
   display: block;
   cursor: default;
 }
