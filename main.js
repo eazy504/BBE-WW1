@@ -1,13 +1,14 @@
-// Create the map
+// Create the map with pan/zoom but no infinite wrapping
 const map = L.map('map', {
-  maxBounds: [[-90, -180], [90, 180]], // keeps the view within world bounds
-  maxBoundsViscosity: 1.0,            // makes the boundary strict
-}).setView([20, 0], 2);
+  maxBounds: [[-90, -180], [90, 180]], // lock map bounds to the visible world
+  maxBoundsViscosity: 1.0,            // prevents overscrolling
+}).setView([20, 0], 2);                // initial center and zoom
 
-// Add default OpenStreetMap tiles (in English by default)
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+// Use CartoDB Light (English-labeled) tiles
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   maxZoom: 6,
   minZoom: 2,
-  noWrap: true, // prevents horizontal tile wrapping
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  noWrap: true, // prevent infinite scrolling horizontally
+  attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+               '&copy; <a href="https://carto.com/">CARTO</a>',
 }).addTo(map);
