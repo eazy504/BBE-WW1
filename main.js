@@ -20,8 +20,9 @@ let selectedColor = '#000000';
 let savedTiles = {};
 let showTileBorders = true; // <== Toggle flag for borders
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight - 40;
+canvas.width = window.innerWidth - 60; // 30px each side
+canvas.height = window.innerHeight - 70; // 40px top + 30px bottom
+
 
 function drawGrid() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
