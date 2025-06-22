@@ -1,3 +1,4 @@
+/* General page layout */
 body, html {
   margin: 0;
   padding: 0;
@@ -6,6 +7,7 @@ body, html {
   height: 100%;
 }
 
+/* Top menu bar */
 #menu-bar {
   position: fixed;
   top: 0;
@@ -32,42 +34,9 @@ body, html {
   background: #777;
 }
 
+/* Admin tools panel */
 .menu-panel {
   position: fixed;
   top: 40px;
   left: 0;
-  padding: 10px 16px;
-  background: #f4f4f4;
-  border-bottom: 1px solid #ccc;
-  z-index: 15;
-  display: none;
-}
-
-#map-scroll-wrapper {
-  position: absolute;
-  top: 80px;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  overflow: scroll; /* restore scrollbars */
-  cursor: default;
-}
-
-#map-container {
-  display: grid;
-  grid-template-columns: repeat(802, 15px); /* ⬅️ bigger tiles */
-  grid-template-rows: repeat(376, 15px);
-  width: max-content;
-  height: max-content;
-  user-select: none;
-  border: 2px solid #333;
-}
-
-.tile {
-  width: 15px;
-  height: 15px;
-  box-sizing: border-box;
-  border: 0.1px solid rgba(0, 0, 0, 0.05);
-  background-color: #f0f0f0;
-  cursor: crosshair;
-}
+  paddin
