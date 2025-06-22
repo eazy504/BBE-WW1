@@ -24,8 +24,7 @@ let zoomLevel = 1;
 const minZoom = 0.1;
 const maxZoom = 2;
 
-// Load saved tile colors
-const savedTiles = JSON.parse(localStorage.getItem('tileColors') || {});
+const savedTiles = JSON.parse(localStorage.getItem('tileColors') || '{}');
 
 function saveTileColor(x, y, color) {
   const key = `${x},${y}`;
@@ -37,7 +36,6 @@ function saveTileColor(x, y, color) {
   localStorage.setItem('tileColors', JSON.stringify(savedTiles));
 }
 
-// Generate tiles
 for (let y = 0; y < height; y++) {
   for (let x = 0; x < width; x++) {
     const tile = document.createElement('div');
@@ -75,14 +73,12 @@ for (let y = 0; y < height; y++) {
   }
 }
 
-// Stop painting or dragging
 document.addEventListener('mouseup', () => {
   isPainting = false;
   isDraggingMap = false;
   wrapper.style.cursor = 'default';
 });
 
-// Middle mouse panning
 wrapper.addEventListener('mousedown', (e) => {
   if (e.button !== 1) return;
   e.preventDefault();
@@ -112,7 +108,6 @@ wrapper.addEventListener('mouseup', () => {
   wrapper.style.cursor = 'default';
 });
 
-// Mouse wheel zoom + update display
 wrapper.addEventListener('wheel', (e) => {
   e.preventDefault();
   const delta = Math.sign(e.deltaY);
@@ -122,7 +117,6 @@ wrapper.addEventListener('wheel', (e) => {
   zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
 }, { passive: false });
 
-// Admin tab toggle
 menuButtons.forEach((btn) => {
   btn.addEventListener('click', () => {
     const tab = btn.dataset.tab;
@@ -130,7 +124,6 @@ menuButtons.forEach((btn) => {
   });
 });
 
-// Auto-fit map to view on load
 window.addEventListener('load', () => {
   const mapWidth = container.offsetWidth;
   const mapHeight = container.offsetHeight;
