@@ -11,6 +11,8 @@ const defaultColor = '#f0f0f0';
 let selectedColor = paintColorInput.value;
 let zoomLevel = 1;
 let isDragging = false;
+let isPainting = false;
+let isErasing = false;
 let dragStartX, dragStartY;
 let viewOffsetX = 0, viewOffsetY = 0;
 
@@ -76,62 +78,66 @@ function clampOffsets() {
   viewOffsetY = Math.min(Math.max(viewOffsetY, minY), maxY);
 }
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight - document.getElementById('menu-bar').offsetHeight;
-
-canvas.addEventListener('mousedown', (e) => {
+function handlePaintOrErase(e) {
   const rect = canvas.getBoundingClientRect();
   const canvasX = (e.clientX - rect.left - viewOffsetX) / zoomLevel;
   const canvasY = (e.clientY - rect.top - viewOffsetY) / zoomLevel;
   const tx = Math.floor(canvasX / tileSize);
   const ty = Math.floor(canvasY / tileSize);
 
+  if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
+    const key = `${tx},${ty}`;
+    if (isPainting) {
+      savedTiles[key] = selectedColor;
+      saveTileColor(tx, ty, selectedColor);
+    } else if (isErasing) {
+      delete savedTiles[key];
+      saveTileColor(tx, ty, defaultColor);
+    }
+    drawGrid();
+  }
+}
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight - document.getElementById('menu-bar').offsetHeight;
+
+canvas.addEventListener('mousedown', (e) => {
   if (e.button === 1) {
     isDragging = true;
     dragStartX = e.clientX;
     dragStartY = e.clientY;
     canvas.style.cursor = 'grabbing';
-    return;
-  }
-
-  if (e.button === 0) {
-    if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
-      const key = `${tx},${ty}`;
-      savedTiles[key] = selectedColor;
-      saveTileColor(tx, ty, selectedColor);
-      drawGrid();
-    }
+  } else if (e.button === 0) {
+    isPainting = true;
+    handlePaintOrErase(e);
+  } else if (e.button === 2) {
+    isErasing = true;
+    handlePaintOrErase(e);
   }
 });
 
 canvas.addEventListener('mouseup', () => {
   isDragging = false;
+  isPainting = false;
+  isErasing = false;
   canvas.style.cursor = 'default';
 });
 
 canvas.addEventListener('mousemove', (e) => {
-  if (!isDragging) return;
-  viewOffsetX += e.clientX - dragStartX;
-  viewOffsetY += e.clientY - dragStartY;
-  dragStartX = e.clientX;
-  dragStartY = e.clientY;
-  clampOffsets();
-  drawGrid();
+  if (isDragging) {
+    viewOffsetX += e.clientX - dragStartX;
+    viewOffsetY += e.clientY - dragStartY;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    clampOffsets();
+    drawGrid();
+  } else if (isPainting || isErasing) {
+    handlePaintOrErase(e);
+  }
 });
 
 canvas.addEventListener('contextmenu', (e) => {
-  e.preventDefault();
-  const rect = canvas.getBoundingClientRect();
-  const canvasX = (e.clientX - rect.left - viewOffsetX) / zoomLevel;
-  const canvasY = (e.clientY - rect.top - viewOffsetY) / zoomLevel;
-  const tx = Math.floor(canvasX / tileSize);
-  const ty = Math.floor(canvasY / tileSize);
-  if (tx >= 0 && tx < width && ty >= 0 && ty < height) {
-    const key = `${tx},${ty}`;
-    delete savedTiles[key];
-    saveTileColor(tx, ty, defaultColor);
-    drawGrid();
-  }
+  e.preventDefault(); // prevent browser context menu
 });
 
 canvas.addEventListener('wheel', (e) => {
