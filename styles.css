@@ -1,51 +1,25 @@
-/* Global styles */
-body {
-  margin: 0;
-  overflow: hidden;
-  font-family: sans-serif;
-}
-
-/* Top menu bar */
-#menu-bar {
-  height: 40px;
-  background-color: #333;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 10px;
-}
-
-/* Tool button section */
-#tool-selector button {
-  margin-right: 5px;
-  padding: 5px 10px;
-}
-
-/* Canvas container fits full viewport under menu */
+/* Make canvas fill the border exactly */
 #canvas-container {
   position: relative;
-  width: 100vw;
-  height: calc(100vh - 40px);
-  overflow: hidden;
-}
-
-/* Main canvas */
-canvas {
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  cursor: crosshair;
 }
 
 #canvas-border {
   position: absolute;
-  top: 40px; /* exactly under menu bar */
+  top: 40px; /* flush with menu */
   left: 30px;
   right: 30px;
   bottom: 30px;
   border: 3px solid black;
   pointer-events: none;
   z-index: 1;
+}
+
+canvas {
+  position: absolute;
+  top: 40px;
+  left: 30px;
+  right: 30px;
+  bottom: 30px;
+  width: calc(100vw - 60px);  /* exact width of border */
+  height: calc(100vh - 70px); /* 40px top + 30px bottom */
 }
