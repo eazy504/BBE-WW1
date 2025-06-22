@@ -51,8 +51,28 @@ function drawGrid() {
     }
   }
 
+  // Draw outer map border
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 5;
+  ctx.strokeRect(0, 0, width * tileSize, height * tileSize);
+
   ctx.restore();
   zoomDisplay.textContent = `Zoom: ${Math.round(zoomLevel * 100)}%`;
+}
+
+function clampOffsets() {
+  const mapWidth = width * tileSize * zoomLevel;
+  const mapHeight = height * tileSize * zoomLevel;
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
+
+  const minX = -mapWidth + 50;
+  const maxX = canvasWidth - 50;
+  const minY = -mapHeight + 50;
+  const maxY = canvasHeight - 50;
+
+  viewOffsetX = Math.min(Math.max(viewOffsetX, minX), maxX);
+  viewOffsetY = Math.min(Math.max(viewOffsetY, minY), maxY);
 }
 
 canvas.width = window.innerWidth;
@@ -94,6 +114,7 @@ canvas.addEventListener('mousemove', (e) => {
   viewOffsetY += e.clientY - dragStartY;
   dragStartX = e.clientX;
   dragStartY = e.clientY;
+  clampOffsets();
   drawGrid();
 });
 
@@ -117,6 +138,7 @@ canvas.addEventListener('wheel', (e) => {
   const zoomFactor = 0.1;
   zoomLevel -= Math.sign(e.deltaY) * zoomFactor;
   zoomLevel = Math.max(0.05, Math.min(2, zoomLevel));
+  clampOffsets();
   drawGrid();
 }, { passive: false });
 
