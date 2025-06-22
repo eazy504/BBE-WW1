@@ -2,6 +2,8 @@ const container = document.getElementById('map-container');
 const wrapper = document.getElementById('map-scroll-wrapper');
 const paintColorInput = document.getElementById('paint-color');
 const hexDisplay = document.getElementById('hex-display');
+const adminPanel = document.getElementById('admin-tools');
+const menuButtons = document.querySelectorAll('.menu-button');
 
 let selectedColor = paintColorInput.value;
 hexDisplay.textContent = selectedColor;
@@ -18,21 +20,25 @@ let isDraggingMap = false;
 let isPainting = false;
 let startX, startY, scrollLeft, scrollTop;
 
-// Load saved colors
-const savedTiles = JSON.parse(localStorage.getItem('tileColors') || '{}');
+// Zoom setup
+let zoomLevel = 1;
+const minZoom = 0.5;
+const maxZoom = 2;
 
-// Helper: save current tile color to localStorage
+// Load saved tile colors
+const savedTiles = JSON.parse(localStorage.getItem('tileColors') || {});
+
 function saveTileColor(x, y, color) {
   const key = `${x},${y}`;
   if (color === defaultColor) {
-    delete savedTiles[key]; // remove default colors to save space
+    delete savedTiles[key];
   } else {
     savedTiles[key] = color;
   }
   localStorage.setItem('tileColors', JSON.stringify(savedTiles));
 }
 
-// Create and attach tiles
+// Create tiles
 for (let y = 0; y < height; y++) {
   for (let x = 0; x < width; x++) {
     const tile = document.createElement('div');
@@ -40,13 +46,11 @@ for (let y = 0; y < height; y++) {
     tile.dataset.x = x;
     tile.dataset.y = y;
 
-    // Apply saved color if it exists
     const key = `${x},${y}`;
     if (savedTiles[key]) {
       tile.style.backgroundColor = savedTiles[key];
     }
 
-    // Left-click to paint
     tile.addEventListener('mousedown', (e) => {
       if (e.button === 0) {
         isPainting = true;
@@ -55,14 +59,12 @@ for (let y = 0; y < height; y++) {
       }
     });
 
-    // Right-click to erase
     tile.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       tile.style.backgroundColor = defaultColor;
       saveTileColor(x, y, defaultColor);
     });
 
-    // Drag-to-paint
     tile.addEventListener('mouseover', () => {
       if (isPainting) {
         tile.style.backgroundColor = selectedColor;
@@ -74,16 +76,16 @@ for (let y = 0; y < height; y++) {
   }
 }
 
-// Stop painting on mouse release
 document.addEventListener('mouseup', () => {
   isDraggingMap = false;
   isPainting = false;
-  wrapper.style.cursor = 'grab';
+  wrapper.style.cursor = 'default';
 });
 
-// Drag-to-pan
+// ✅ Middle mouse button pans the map
 wrapper.addEventListener('mousedown', (e) => {
-  if (e.button !== 0) return;
+  if (e.button !== 1) return;
+  e.preventDefault();
   isDraggingMap = true;
   wrapper.style.cursor = 'grabbing';
   startX = e.clientX;
@@ -94,12 +96,12 @@ wrapper.addEventListener('mousedown', (e) => {
 
 wrapper.addEventListener('mouseleave', () => {
   isDraggingMap = false;
-  wrapper.style.cursor = 'grab';
+  wrapper.style.cursor = 'default';
 });
 
 wrapper.addEventListener('mouseup', () => {
   isDraggingMap = false;
-  wrapper.style.cursor = 'grab';
+  wrapper.style.cursor = 'default';
 });
 
 wrapper.addEventListener('mousemove', (e) => {
@@ -108,4 +110,21 @@ wrapper.addEventListener('mousemove', (e) => {
   const dy = e.clientY - startY;
   wrapper.scrollLeft = scrollLeft - dx;
   wrapper.scrollTop = scrollTop - dy;
+});
+
+// ✅ Zoom with mouse wheel
+wrapper.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = Math.sign(e.deltaY);
+  zoomLevel -= delta * 0.1;
+  zoomLevel = Math.min(maxZoom, Math.max(minZoom, zoomLevel));
+  container.style.transform = `scale(${zoomLevel})`;
+}, { passive: false });
+
+// Toggle tabs
+menuButtons.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    adminPanel.style.display = (tab === 'admin') ? 'block' : 'none';
+  });
 });
