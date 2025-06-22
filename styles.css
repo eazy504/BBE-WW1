@@ -1,95 +1,38 @@
-body, html {
+body {
   margin: 0;
-  padding: 0;
-  overflow: hidden;
   font-family: sans-serif;
-  height: 100%;
+  overflow: hidden;
 }
 
 #menu-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  background: #333;
-  color: #fff;
-  width: 100%;
-  padding: 6px 8px;
-  z-index: 20;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 8px 12px;
+  background: #333;
+  color: white;
 }
 
 .menu-button {
-  background: #555;
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-weight: bold;
   margin-right: 8px;
 }
 
-.menu-button:hover {
-  background: #777;
+#map-scroll-wrapper {
+  position: relative;
+  overflow: auto;
+  width: 100vw;
+  height: calc(100vh - 48px);
+  border: 3px solid #444;
+  background: #ccc;
 }
 
-#zoom-display {
-  font-size: 14px;
-  font-weight: bold;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 4px 10px;
-  border-radius: 4px;
+#map-canvas {
+  display: block;
+  transform-origin: top left;
 }
 
 .menu-panel {
-  position: fixed;
-  top: 40px;
-  left: 0;
-  padding: 10px 16px;
-  background: #f4f4f4;
-  border-bottom: 1px solid #ccc;
-  z-index: 15;
+  padding: 10px;
+  background: #eee;
   display: none;
-}
-
-#map-scroll-wrapper {
-  display: block;
-  overflow: auto;
-  margin: 16px;
-  border: 3px solid #444;
-  background: #ccc;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  z-index: 10;
-  position: fixed;
-  top: 50px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
-
-#map-container {
-  display: grid;
-  grid-template-columns: repeat(802, 90px);
-  grid-template-rows: repeat(376, 90px);
-  width: 72180px;
-  height: 33840px;
-  user-select: none;
-  transform-origin: top left;
-  transform: scale(1);
-  background-color: white;
-}
-
-.tile {
-  width: 90px;
-  height: 90px;
-  box-sizing: border-box;
-  border: 0.3px solid rgba(0, 0, 0, 0.05);
-  background-color: #f0f0f0;
-  cursor: crosshair;
-}
-
-.painter-active .tile {
-  cursor: url('https://cdn-icons-png.flaticon.com/128/616/616408.png') 0 32, auto;
 }
