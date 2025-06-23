@@ -8,8 +8,10 @@ const gridCols = 802;
 const gridRows = 376;
 const defaultColor = '#ffffff';
 
+const bottomInnerMargin = 30; // Margin inside bottom of canvas
+
 canvas.width = window.innerWidth - 60;
-canvas.height = window.innerHeight - 70;
+canvas.height = window.innerHeight - 70 - bottomInnerMargin;
 
 let scale = 1;
 let offsetX = 0;
@@ -23,15 +25,17 @@ let selectedColor = '#000000';
 let savedTiles = {};
 let showTileBorders = true;
 
-// Center the tile grid on load if it's smaller than the canvas
+// Center grid with internal margin at bottom
 const totalWidth = gridCols * tileSize * scale;
 const totalHeight = gridRows * tileSize * scale;
 
 if (totalWidth < canvas.width) {
   offsetX = (canvas.width - totalWidth) / 2;
 }
-if (totalHeight < canvas.height) {
-  offsetY = (canvas.height - totalHeight) / 2;
+if (totalHeight < canvas.height - bottomInnerMargin) {
+  offsetY = (canvas.height - bottomInnerMargin - totalHeight) / 2;
+} else {
+  offsetY = 0;
 }
 
 function clamp(val, min, max) {
